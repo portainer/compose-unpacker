@@ -1,4 +1,4 @@
-module github.com/deviantony/go-workbench/unpacker
+module github.com/portainer/compose-unpacker
 
 go 1.18
 

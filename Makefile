@@ -1,6 +1,6 @@
 dist := dist
 bin := $(shell basename $(CURDIR))
-image := deviantony/unpacker
+image := portainer/compose-unpacker
 
 pre:
 	mkdir -pv $(dist) 

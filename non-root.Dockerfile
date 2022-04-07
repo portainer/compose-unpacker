@@ -1,5 +1,5 @@
 ## WARNING
-## This was a tentative to run the unpacker as a non root container (using another USER in the image - the scratch user)
+## This was an attempt to run the unpacker as a non root container (using another USER in the image - the scratch user)
 ## However it is non functional and the image is not used in the current version of the unpacker
 ## It is mostly here for reference purposes
 
@@ -25,6 +25,6 @@ COPY --from=buildenv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
 COPY --from=buildenv /tmp/docker-compose /home/scratch/.docker/cli-plugins/docker-compose
 
-COPY dist/unpacker /
+COPY dist/compose-unpacker /
 
-ENTRYPOINT [ "/unpacker" ]
+ENTRYPOINT [ "/compose-unpacker" ]

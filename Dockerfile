@@ -17,6 +17,6 @@ COPY --from=buildenv /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin/
 COPY --from=buildenv /tmp/docker-compose /root/.docker/cli-plugins/docker-compose
 
-COPY dist/unpacker /
+COPY dist/compose-unpacker /
 
-ENTRYPOINT [ "/unpacker" ]
+ENTRYPOINT [ "/compose-unpacker" ]
