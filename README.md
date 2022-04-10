@@ -1,5 +1,15 @@
 # Unpacker
 
+Build:
+
+```
+# To just compile it and get the binary generated in dist/
+make build
+
+# To compile and build a Docker image:
+make image
+```
+
 Run:
 
 ```
