@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
@@ -60,6 +61,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 	gitOptions := git.CloneOptions{
 		URL:   cmd.GitRepository,
+		Auth:  getAuth(cmd.User, cmd.Password),
 		Depth: 1,
 	}
 
@@ -111,5 +113,19 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 	cmdCtx.logger.Info("Compose stack deployment complete")
 
+	return nil
+}
+
+func getAuth(username, password string) *http.BasicAuth {
+	if password != "" {
+		if username == "" {
+			username = "token"
+		}
+
+		return &http.BasicAuth{
+			Username: username,
+			Password: password,
+		}
+	}
 	return nil
 }
