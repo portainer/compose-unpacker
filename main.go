@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 
 	"github.com/alecthomas/kong"
@@ -27,6 +28,7 @@ func initializeLogger(debug bool) (*zap.SugaredLogger, error) {
 }
 
 func main() {
+	fmt.Println("Unpack begin to work")
 	ctx := context.Background()
 
 	cliCtx := kong.Parse(&cli,

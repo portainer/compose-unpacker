@@ -2,6 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
+	"log"
 	"os"
 	"path"
 	"strings"
@@ -9,24 +11,15 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	"github.com/portainer/docker-compose-wrapper/compose"
+	"github.com/portainer/portainer/api/filesystem"
 )
-
-type DeployCommand struct {
-	User     string `help:"Username for Git authentication." short:"u"`
-	Password string `help:"Password or PAT for Git authentication" short:"p"`
-
-	GitRepository           string `arg:"" help:"Git repository to deploy from." name:"git-repo"`
-	ComposeRelativeFilePath string `arg:"" help:"Relative path to the Compose file." type:"path" name:"compose-file-path"`
-	ProjectName             string `arg:"" help:"Name of the Compose stack." name:"project-name"`
-	Destination             string `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
-}
 
 var errDeployComposeFailure = errors.New("compose stack deployment failure")
 
 func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Compose stack from Git repository",
 		"repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePath,
+		"composePath", cmd.ComposeRelativeFilePaths,
 	)
 
 	if cmd.User != "" && cmd.Password != "" {
@@ -49,14 +42,30 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Debugw("Creating target destination directory on disk",
 		"directory", cmd.Destination,
 	)
-
-	err := os.MkdirAll(cmd.Destination, 0755)
-	if err != nil {
-		cmdCtx.logger.Errorw("Failed to create destination directory",
-			"error", err,
-		)
-
-		return errDeployComposeFailure
+	if _, err := os.Stat(cmd.Destination); err != nil {
+		if os.IsNotExist(err) {
+			err := os.MkdirAll(cmd.Destination, 0755)
+			if err != nil {
+				cmdCtx.logger.Errorw("Failed to create destination directory",
+					"error", err,
+				)
+				return errDeployComposeFailure
+			}
+		} else {
+			return err
+		}
+	} else {
+		backupProjectPath := fmt.Sprintf("%s-old", cmd.Destination)
+		err = filesystem.MoveDirectory(cmd.Destination, backupProjectPath)
+		if err != nil {
+			return err
+		}
+		defer func() {
+			err = os.RemoveAll(backupProjectPath)
+			if err != nil {
+				log.Printf("[WARN] [http,stacks,git] [error: %s] [message: unable to remove git repository directory]", err)
+			}
+		}()
 	}
 
 	gitOptions := git.CloneOptions{
@@ -72,7 +81,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		"cloneOptions", gitOptions,
 	)
 
-	_, err = git.PlainCloneContext(cmdCtx.context, clonePath, false, &gitOptions)
+	_, err := git.PlainCloneContext(cmdCtx.context, clonePath, false, &gitOptions)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to clone Git repository",
 			"error", err,
@@ -93,16 +102,18 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		return errDeployComposeFailure
 	}
-
-	composeFilePath := path.Join(clonePath, cmd.ComposeRelativeFilePath)
+	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
+	for i := 0; i < len(cmd.ComposeRelativeFilePaths); i++ {
+		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
+	}
 
 	cmdCtx.logger.Debugw("Deploying Compose stack",
-		"composeFilePath", composeFilePath,
+		"composeFilePaths", composeFilePaths,
 		"workingDirectory", clonePath,
 		"projectName", cmd.ProjectName,
 	)
 
-	err = deployer.Deploy(cmdCtx.context, clonePath, "", cmd.ProjectName, []string{composeFilePath}, "", false)
+	err = deployer.Deploy(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths, "", false)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to deploy Compose stack",
 			"error", err,
