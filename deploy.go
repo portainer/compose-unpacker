@@ -20,6 +20,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Compose stack from Git repository",
 		"repository", cmd.GitRepository,
 		"composePath", cmd.ComposeRelativeFilePaths,
+		"destination", cmd.Destination,
 	)
 
 	if cmd.User != "" && cmd.Password != "" {
@@ -39,11 +40,14 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
 
-	cmdCtx.logger.Debugw("Creating target destination directory on disk",
+	cmdCtx.logger.Infow("Checking the file system...",
 		"directory", cmd.Destination,
 	)
 	if _, err := os.Stat(cmd.Destination); err != nil {
 		if os.IsNotExist(err) {
+			cmdCtx.logger.Infow("Creating folder in the file system...",
+				"directory", cmd.Destination,
+			)
 			err := os.MkdirAll(cmd.Destination, 0755)
 			if err != nil {
 				cmdCtx.logger.Errorw("Failed to create destination directory",
@@ -55,6 +59,9 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			return err
 		}
 	} else {
+		cmdCtx.logger.Infow("Backing up folder in the file system...",
+			"directory", cmd.Destination,
+		)
 		backupProjectPath := fmt.Sprintf("%s-old", cmd.Destination)
 		err = filesystem.MoveDirectory(cmd.Destination, backupProjectPath)
 		if err != nil {
@@ -67,7 +74,9 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			}
 		}()
 	}
-
+	cmdCtx.logger.Infow("Creating target destination directory on disk",
+		"directory", cmd.Destination,
+	)
 	gitOptions := git.CloneOptions{
 		URL:   cmd.GitRepository,
 		Auth:  getAuth(cmd.User, cmd.Password),
@@ -76,7 +85,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 	clonePath := path.Join(cmd.Destination, repositoryName)
 
-	cmdCtx.logger.Debugw("Cloning git repository",
+	cmdCtx.logger.Infow("Cloning git repository",
 		"path", clonePath,
 		"cloneOptions", gitOptions,
 	)
@@ -90,7 +99,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		return errDeployComposeFailure
 	}
 
-	cmdCtx.logger.Debugw("Creating Compose deployer",
+	cmdCtx.logger.Infow("Creating Compose deployer",
 		"binPath", BIN_PATH,
 	)
 
@@ -107,7 +116,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
 	}
 
-	cmdCtx.logger.Debugw("Deploying Compose stack",
+	cmdCtx.logger.Infow("Deploying Compose stack",
 		"composeFilePaths", composeFilePaths,
 		"workingDirectory", clonePath,
 		"projectName", cmd.ProjectName,
