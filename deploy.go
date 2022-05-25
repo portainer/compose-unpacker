@@ -43,12 +43,13 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Checking the file system...",
 		"directory", cmd.Destination,
 	)
-	if _, err := os.Stat(cmd.Destination); err != nil {
+	mountPath := fmt.Sprintf("%s/%s", cmd.Destination, "mount")
+	if _, err := os.Stat(mountPath); err != nil {
 		if os.IsNotExist(err) {
 			cmdCtx.logger.Infow("Creating folder in the file system...",
-				"directory", cmd.Destination,
+				"directory", mountPath,
 			)
-			err := os.MkdirAll(cmd.Destination, 0755)
+			err := os.MkdirAll(mountPath, 0755)
 			if err != nil {
 				cmdCtx.logger.Errorw("Failed to create destination directory",
 					"error", err,
@@ -60,10 +61,10 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		}
 	} else {
 		cmdCtx.logger.Infow("Backing up folder in the file system...",
-			"directory", cmd.Destination,
+			"directory", mountPath,
 		)
-		backupProjectPath := fmt.Sprintf("%s-old", cmd.Destination)
-		err = filesystem.MoveDirectory(cmd.Destination, backupProjectPath)
+		backupProjectPath := fmt.Sprintf("%s-old", mountPath)
+		err = filesystem.MoveDirectory(mountPath, backupProjectPath)
 		if err != nil {
 			return err
 		}
@@ -75,7 +76,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		}()
 	}
 	cmdCtx.logger.Infow("Creating target destination directory on disk",
-		"directory", cmd.Destination,
+		"directory", mountPath,
 	)
 	gitOptions := git.CloneOptions{
 		URL:   cmd.GitRepository,
@@ -83,7 +84,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		Depth: 1,
 	}
 
-	clonePath := path.Join(cmd.Destination, repositoryName)
+	clonePath := path.Join(mountPath, repositoryName)
 
 	cmdCtx.logger.Infow("Cloning git repository",
 		"path", clonePath,
