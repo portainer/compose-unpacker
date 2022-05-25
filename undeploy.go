@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"github.com/portainer/docker-compose-wrapper/compose"
-	"os"
 	"path"
 	"strings"
 )
@@ -24,17 +24,9 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		return errDeployComposeFailure
 	}
+	mountPath := fmt.Sprintf("%s/%s", cmd.Destination, "mount")
 	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
-	clonePath := path.Join(cmd.Destination, repositoryName)
-	defer func() {
-		err := os.RemoveAll(cmd.Destination)
-		if nil != err {
-			cmdCtx.logger.Errorw("Failed to delete the stack folder",
-				"targetFolder", clonePath,
-			)
-		}
-	}()
-
+	clonePath := path.Join(mountPath, repositoryName)
 	cmdCtx.logger.Debugw("Current git repository",
 		"path", clonePath,
 	)
