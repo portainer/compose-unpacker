@@ -40,6 +40,8 @@ var cli struct {
 
 	// Commands
 	Deploy DeployCommand `cmd:"" help:"Deploy a stack from a Git repository."`
+	// Commands
+	Undeploy UndeployCommand `cmd:"" help:"Remove a stack from a Git repository."`
 }
 
 func NewCommandExecutionContext(ctx context.Context, logger *zap.SugaredLogger) *CommandExecutionContext {
