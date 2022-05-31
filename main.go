@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/alecthomas/kong"
 	"go.uber.org/zap"
@@ -47,5 +48,8 @@ func main() {
 
 	cmdCtx := NewCommandExecutionContext(ctx, logger)
 	err = cliCtx.Run(cmdCtx)
-	cliCtx.FatalIfErrorf(err)
+	if err != nil {
+		os.Exit(255)
+	}
+	os.Exit(99)
 }
