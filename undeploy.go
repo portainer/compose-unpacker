@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/portainer/docker-compose-wrapper/compose"
 	"path"
+	"runtime"
 	"strings"
 )
 
@@ -61,4 +62,18 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 	cmdCtx.logger.Info("Compose stack remove complete")
 	return nil
+}
+
+func (cmd *SwarmUndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
+	cmdCtx.logger.Infow("Undeploying Swarm stack from Git repository",
+		"stack name", cmd.ProjectName,
+		"destination", cmd.Destination,
+	)
+	command := path.Join(BIN_PATH, "docker")
+	if runtime.GOOS == "windows" {
+		command = path.Join(BIN_PATH, "docker.exe")
+	}
+	args := make([]string, 0)
+	args = append(args, "stack", "rm", cmd.ProjectName)
+	return runCommandAndCaptureStdErr(command, args, nil, "")
 }
