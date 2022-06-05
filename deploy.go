@@ -223,7 +223,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		return errDeployComposeFailure
 	}
-	
+
 	command := path.Join(BIN_PATH, "docker")
 
 	if runtime.GOOS == "windows" {
@@ -257,7 +257,14 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		}
 
 	*/
-	return runCommandAndCaptureStdErr(command, args, env, cmd.ProjectName)
+	err = runCommandAndCaptureStdErr(command, args, env, cmd.ProjectName)
+	if err != nil {
+		cmdCtx.logger.Errorw("Failed to swarm deplot Git repository",
+			"error", err,
+		)
+
+		return errDeployComposeFailure
+	}
 	cmdCtx.logger.Info("Swarm stack deployment complete")
 
 	return nil
@@ -276,6 +283,7 @@ func runCommandAndCaptureStdErr(command string, args []string, env []string, wor
 
 	err := cmd.Run()
 	if err != nil {
+		fmt.Println(stderr.String())
 		return errors.New(stderr.String())
 	}
 
