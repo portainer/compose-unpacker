@@ -52,7 +52,6 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		"workingDirectory", clonePath,
 		"projectName", cmd.ProjectName,
 	)
-	//Remove(ctx context.Context, workingDir, host, projectName string, filePaths []string) error
 	err = deployer.Remove(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to remove Compose stack",

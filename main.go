@@ -29,7 +29,7 @@ func initializeLogger(debug bool) (*zap.SugaredLogger, error) {
 }
 
 func main() {
-	fmt.Println("Unpack begin to work")
+	fmt.Println("Unpacker begin to work")
 	ctx := context.Background()
 
 	cliCtx := kong.Parse(&cli,
@@ -49,6 +49,7 @@ func main() {
 	cmdCtx := NewCommandExecutionContext(ctx, logger)
 	err = cliCtx.Run(cmdCtx)
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(255)
 	}
 	os.Exit(99)

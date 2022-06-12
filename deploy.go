@@ -220,7 +220,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		cmdCtx.logger.Errorw("Failed to clone Git repository",
 			"error", err,
 		)
-
 		return errDeployComposeFailure
 	}
 
@@ -251,18 +250,17 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	args = append(args, cmd.ProjectName)
 
 	env := make([]string, 0)
-	/*
-		for _, envvar := range stack.Env {
-			env = append(env, envvar.Name+"="+envvar.Value)
+	if cmd.ENV != nil {
+		for k, v := range cmd.ENV {
+			env = append(env, k+"="+v)
 		}
+	}
 
-	*/
-	err = runCommandAndCaptureStdErr(command, args, env, cmd.ProjectName)
+	err = runCommandAndCaptureStdErr(command, args, env, clonePath)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to swarm deplot Git repository",
 			"error", err,
 		)
-
 		return errDeployComposeFailure
 	}
 	cmdCtx.logger.Info("Swarm stack deployment complete")
@@ -302,18 +300,4 @@ func getAuth(username, password string) *http.BasicAuth {
 		}
 	}
 	return nil
-}
-
-func prepareDockerCommandAndArgs(binaryPath, configPath string) (string, []string, error) {
-	// Assume Linux as a default
-	command := path.Join(binaryPath, "docker")
-
-	if runtime.GOOS == "windows" {
-		command = path.Join(binaryPath, "docker.exe")
-	}
-
-	args := make([]string, 0)
-	args = append(args, "--config", configPath)
-
-	return command, args, nil
 }
