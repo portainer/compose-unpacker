@@ -29,9 +29,7 @@ func initializeLogger(debug bool) (*zap.SugaredLogger, error) {
 }
 
 func main() {
-	fmt.Println("Unpacker begin to work")
 	ctx := context.Background()
-
 	cliCtx := kong.Parse(&cli,
 		kong.Name("unpacker"),
 		kong.Description("A tool to deploy Docker stacks from Git repositories."),
@@ -50,7 +48,6 @@ func main() {
 	err = cliCtx.Run(cmdCtx)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(255)
+		os.Exit(UNPACKER_EXIT_ERROR)
 	}
-	os.Exit(99)
 }

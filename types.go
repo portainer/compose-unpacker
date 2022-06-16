@@ -8,7 +8,8 @@ import (
 
 const (
 	// Path to Docker binary
-	BIN_PATH = "/usr/local/bin"
+	BIN_PATH            = "/usr/local/bin"
+	UNPACKER_EXIT_ERROR = 255
 )
 
 type CommandExecutionContext struct {
