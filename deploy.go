@@ -88,31 +88,25 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 
 	clonePath := path.Join(mountPath, repositoryName)
-
 	cmdCtx.logger.Infow("Cloning git repository",
 		"path", clonePath,
 		"cloneOptions", gitOptions,
 	)
-
 	_, err := git.PlainCloneContext(cmdCtx.context, clonePath, false, &gitOptions)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to clone Git repository",
 			"error", err,
 		)
-
 		return errDeployComposeFailure
 	}
-
 	cmdCtx.logger.Infow("Creating Compose deployer",
 		"binPath", BIN_PATH,
 	)
-
 	deployer, err := compose.NewComposeDeployer(BIN_PATH, "")
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to create Compose deployer",
 			"error", err,
 		)
-
 		return errDeployComposeFailure
 	}
 	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
@@ -131,12 +125,9 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		cmdCtx.logger.Errorw("Failed to deploy Compose stack",
 			"error", err,
 		)
-
 		return errDeployComposeFailure
 	}
-
 	cmdCtx.logger.Info("Compose stack deployment complete")
-
 	return nil
 }
 
@@ -159,11 +150,9 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		cmdCtx.logger.Errorw("Invalid Git repository URL",
 			"repository", cmd.GitRepository,
 		)
-
 		return errDeployComposeFailure
 	}
 	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
-
 	cmdCtx.logger.Infow("Checking the file system...",
 		"directory", cmd.Destination,
 	)
@@ -209,7 +198,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 
 	clonePath := path.Join(mountPath, repositoryName)
-
 	cmdCtx.logger.Infow("Cloning git repository",
 		"path", clonePath,
 		"cloneOptions", gitOptions,
@@ -224,7 +212,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 
 	command := path.Join(BIN_PATH, "docker")
-
 	if runtime.GOOS == "windows" {
 		command = path.Join(BIN_PATH, "docker.exe")
 	}
@@ -264,7 +251,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		return errDeployComposeFailure
 	}
 	cmdCtx.logger.Info("Swarm stack deployment complete")
-
 	return nil
 }
 
@@ -284,7 +270,6 @@ func runCommandAndCaptureStdErr(command string, args []string, env []string, wor
 		fmt.Println(stderr.String())
 		return errors.New(stderr.String())
 	}
-
 	return nil
 }
 
@@ -293,7 +278,6 @@ func getAuth(username, password string) *http.BasicAuth {
 		if username == "" {
 			username = "token"
 		}
-
 		return &http.BasicAuth{
 			Username: username,
 			Password: password,

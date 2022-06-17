@@ -10,9 +10,6 @@ PLATFORM=$1
 ARCH=$2
 DOCKER_VERSION=${3:1}
 DOWNLOAD_FOLDER=".tmp/download"
-if [[ $PLATFORM="darwin" ]]; then
-    PLATFORM="mac"
-fi
 
 if [[ ${ARCH} == "amd64" ]]; then
     ARCH="x86_64"
