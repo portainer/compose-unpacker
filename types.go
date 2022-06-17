@@ -8,7 +8,7 @@ import (
 
 const (
 	// Path to Docker binary
-	BIN_PATH            = "/usr/local/bin"
+	BIN_PATH            = "/app"
 	UNPACKER_EXIT_ERROR = 255
 )
 
