@@ -24,8 +24,8 @@ build: pre
 	mv $(bin) $(dist)/
 
 release: pre
-	GOOS="$(shell go env GOOS)" GOARCH="$(shell go env GOARCH)" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -gcflags="all=-N -l" -o $(bin)
-	mv $(bin) $(dist)/
+	GOOS="windows" GOARCH="amd64" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -gcflags="all=-N -l" -o compose-unpacker.exe
+	mv compose-unpacker.exe $(dist)/
 
 image: release
 	docker build -f build/linux/Dockerfile -t $(image) .

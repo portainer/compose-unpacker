@@ -16,8 +16,5 @@ COPY --from=core /Windows/System32/netapi32.dll /Windows/System32/netapi32.dll
 
 USER ContainerAdministrator
 
-COPY ../../dist/docker /usr/local/bin/
-COPY ../../dist/compose-unpacker.exec /
-COPY ../../dist/docker-compose.exe /Users/ContainerAdministrator/.docker/cli-plugins/docker-compose.exe
-
-ENTRYPOINT ["C:/compose-unpacker.exe"]
+COPY dist /app/
+ENTRYPOINT ["C:/app/compose-unpacker.exe"]
