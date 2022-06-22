@@ -2,8 +2,8 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"github.com/portainer/docker-compose-wrapper/compose"
+	"os"
 	"path"
 	"runtime"
 	"strings"
@@ -25,7 +25,7 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		return errDeployComposeFailure
 	}
-	mountPath := fmt.Sprintf("%s/%s", cmd.Destination, "mount")
+	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
 	clonePath := path.Join(mountPath, repositoryName)
 	cmdCtx.logger.Debugw("Current git repository",
@@ -60,6 +60,14 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		return errDeployComposeFailure
 	}
 	cmdCtx.logger.Info("Compose stack remove complete")
+	if !cmd.Keep { //stack stop request
+		err = os.RemoveAll(mountPath)
+		if err != nil {
+			cmdCtx.logger.Errorw("Failed to remove Compose stack project folder", "error", err)
+			return errDeployComposeFailure
+		}
+	}
+
 	return nil
 }
 
@@ -74,5 +82,17 @@ func (cmd *SwarmUndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 	args := make([]string, 0)
 	args = append(args, "stack", "rm", cmd.ProjectName)
-	return runCommandAndCaptureStdErr(command, args, nil, "")
+	err := runCommandAndCaptureStdErr(command, args, nil, "")
+	if err != nil {
+		return err
+	}
+	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
+	if !cmd.Keep { //stack stop request
+		err = os.RemoveAll(mountPath)
+		if err != nil {
+			cmdCtx.logger.Errorw("Failed to remove Compose stack project folder", "error", err)
+			return errDeployComposeFailure
+		}
+	}
+	return nil
 }
