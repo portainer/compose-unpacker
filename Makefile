@@ -1,7 +1,6 @@
 # See: https://gist.github.com/asukakenji/f15ba7e588ac42795f421b48b8aede63
 # For a list of valid GOOS and GOARCH values
 # Note: these can be overriden on the command line e.g. `make PLATFORM=<platform> ARCH=<arch>`
-.PHONY: pre build release image download-binaries clean
 PLATFORM=$(shell go env GOOS)
 ARCH=$(shell go env GOARCH)
 
@@ -11,24 +10,18 @@ else
 bin=compose-unpacker
 endif
 dist := dist
-image := sun93732/compose-unpacker:1.4
+image := portainer/compose-unpacker:latest
+.PHONY: pre $(agent) download-binaries clean
 
+all: $(bin) download-binaries
 download-binaries:
 	@./setup.sh $(PLATFORM) $(ARCH)
 
 pre:
 	mkdir -pv $(dist)
 
-build: pre
-	GOOS="$(shell go env GOOS)" GOARCH="$(shell go env GOARCH)" CGO_ENABLED=0 go build --installsuffix cgo --ldflags '-s' -gcflags="all=-N -l" -o $(bin)
-	mv $(bin) $(dist)/
-
-release: pre
-	GOOS="windows" GOARCH="amd64" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -gcflags="all=-N -l" -o compose-unpacker.exe
-	mv compose-unpacker.exe $(dist)/
-
-image: release
-	docker build -f build/linux/Dockerfile -t $(image) .
+$(bin): pre
+	GOOS="$(shell go env GOOS)" GOARCH="$(shell go env GOARCH)" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -o dist/$(bin)
 
 clean:
 	rm -rf $(dist)/*

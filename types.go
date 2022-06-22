@@ -2,12 +2,10 @@ package main
 
 import (
 	"context"
-
 	"go.uber.org/zap"
 )
 
 const (
-	// Path to Docker binary
 	BIN_PATH            = "/app"
 	UNPACKER_EXIT_ERROR = 255
 )
@@ -55,15 +53,10 @@ type SwarmUndeployCommand struct {
 }
 
 var cli struct {
-	// Generic options
-	Debug bool `help:"Enable debug mode."`
-
-	Deploy DeployCommand `cmd:"" help:"Deploy a stack from a Git repository."`
-
-	Undeploy UndeployCommand `cmd:"" help:"Remove a stack from a Git repository."`
-
-	SwarmDeploy SwarmDeployCommand `cmd:"" help:"Deploy a stack from a Git repository."`
-
+	Debug         bool                 `help:"Enable debug mode."`
+	Deploy        DeployCommand        `cmd:"" help:"Deploy a stack from a Git repository."`
+	Undeploy      UndeployCommand      `cmd:"" help:"Remove a stack from a Git repository."`
+	SwarmDeploy   SwarmDeployCommand   `cmd:"" help:"Deploy a stack from a Git repository."`
 	SwarmUndeploy SwarmUndeployCommand `cmd:"" help:"Remove a stack from a Git repository."`
 }
 
