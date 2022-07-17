@@ -11,17 +11,19 @@ bin=compose-unpacker
 endif
 dist := dist
 image := portainer/compose-unpacker:latest
-.PHONY: pre $(agent) download-binaries clean
+.PHONY: pre build release image clean download-binaries
 
-all: $(bin) download-binaries
 download-binaries:
 	@./setup.sh $(PLATFORM) $(ARCH)
 
 pre:
 	mkdir -pv $(dist)
 
-$(bin): pre
+build: pre download-binaries
 	GOOS="$(shell go env GOOS)" GOARCH="$(shell go env GOARCH)" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -o dist/$(bin)
+
+image: release
+	docker build -f build/$(PLATFORM)/Dockerfile -t $(image) .
 
 clean:
 	rm -rf $(dist)/*
