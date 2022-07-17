@@ -183,6 +183,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/portainer/docker-compose-wrapper v0.0.0-20220531190153-c597b853e410 h1:LjxLd8UGR8ae73ov/vLrt/0jedj/nh98XnONkr8DJj8=
 github.com/portainer/docker-compose-wrapper v0.0.0-20220531190153-c597b853e410/go.mod h1:WxDlJWZxCnicdLCPnLNEv7/gRhjeIVuCGmsv+iOPH3c=
+github.com/portainer/docker-compose-wrapper v0.0.0-20220708023447-a69a4ebaa021 h1:GFTn2e5AyIoBuK6hXbdVNkuV2m450DQnYmgQDZRU3x8=
+github.com/portainer/docker-compose-wrapper v0.0.0-20220708023447-a69a4ebaa021/go.mod h1:WxDlJWZxCnicdLCPnLNEv7/gRhjeIVuCGmsv+iOPH3c=
 github.com/portainer/portainer/api v0.0.0-20220523075722-b031a30f62cd h1:0+823zx5nk8wJGbWOhfTa+1JldmydCJLjj0xlLCtnqs=
 github.com/portainer/portainer/api v0.0.0-20220523075722-b031a30f62cd/go.mod h1:r1NyQuHaO5kXZp7dZACJivjHZILix+/rOhDsSRLEnQ4=
 github.com/portainer/portainer/api v0.0.0-20220617024547-212400c28303 h1:E2f/5WByndWzY7KtMp2FSyCEYftt9qStoWMuZrQ2hE8=
