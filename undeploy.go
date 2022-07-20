@@ -2,11 +2,12 @@ package main
 
 import (
 	"errors"
-	"github.com/portainer/docker-compose-wrapper/compose"
 	"os"
 	"path"
 	"runtime"
 	"strings"
+
+	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
 var errUndeployComposeFailure = errors.New("compose stack remove failure")
@@ -52,7 +53,7 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		"workingDirectory", clonePath,
 		"projectName", cmd.ProjectName,
 	)
-	err = deployer.Remove(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths)
+	err = deployer.Remove(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths, "")
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to remove Compose stack",
 			"error", err,

@@ -78,7 +78,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Compose stack", "composeFilePaths", composeFilePaths,
 		"workingDirectory", clonePath, "projectName", cmd.ProjectName)
 
-	err = deployer.Deploy(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths, "", false)
+	err = deployer.Deploy(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths, "", true)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to deploy Compose stack", "error", err)
 		return errDeployComposeFailure
