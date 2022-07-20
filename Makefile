@@ -15,9 +15,6 @@ image := portainer/compose-unpacker:latest
 
 release: build image
 
-build:
-	GOOS="$(shell go env GOOS)" GOARCH="$(shell go env GOARCH)" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -o dist/$(bin)
-
 download-binaries:
 	mkdir -pv $(dist)
 	@./setup.sh $(PLATFORM) $(ARCH)
@@ -25,7 +22,7 @@ download-binaries:
 build: download-binaries
 	GOOS="$(shell go env GOOS)" GOARCH="$(shell go env GOARCH)" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -o dist/$(bin)
 
-image: build download-binaries image
+image: build
 	docker build -f build/$(PLATFORM)/Dockerfile -t $(image) .
 
 clean:
