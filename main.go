@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
+	"os"
 
 	"github.com/alecthomas/kong"
 	"go.uber.org/zap"
@@ -28,7 +30,6 @@ func initializeLogger(debug bool) (*zap.SugaredLogger, error) {
 
 func main() {
 	ctx := context.Background()
-
 	cliCtx := kong.Parse(&cli,
 		kong.Name("unpacker"),
 		kong.Description("A tool to deploy Docker stacks from Git repositories."),
@@ -45,5 +46,8 @@ func main() {
 
 	cmdCtx := NewCommandExecutionContext(ctx, logger)
 	err = cliCtx.Run(cmdCtx)
-	cliCtx.FatalIfErrorf(err)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(UNPACKER_EXIT_ERROR)
+	}
 }
