@@ -3,10 +3,13 @@
 Build:
 
 ```
-# To just compile it and get the binary generated in dist/
+# To build the first argument, just our binary nothing else . Convenience for dev.
+make
+
+# Same as make (currently downloads binaries even if you don't need to which is not useful)
 make build
 
-# To compile and build a Docker image:
+# To make and build everything, this needs to ensure everything is there before creating the image so must depend on everything
 make image
 ```
 
