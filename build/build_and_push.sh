@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+#set -e
 
 : ${REPO:=$1/compose-unpacker}
 : ${TAG:=$2}
@@ -31,12 +31,9 @@ docker_manifest_create_and_push()
 }
 
 # echo docker_image_build_and_push amd64 amd64:latest ${TAG} ${REPO} $(dirname $0)/.
+
 docker_image_build_and_push amd64 linux ${REPO} ${TAG} 
 docker_image_build_and_push arm64 linux ${REPO} ${TAG} 
-#docker_image_build_and_push arm64 windows ${REPO} ${TAG} 
-#docker_image_build_and_push amd64 windows ${REPO} ${TAG} 
-
-# docker_image_build_and_push arm64  arm64v8/alpine:latest ${TAG} ${KUBERNETES_RELEASE} ${REPO} $(dirname $0)/.
-# docker_image_build_and_push arm    arm32v7/alpine:latest ${TAG} ${KUBERNETES_RELEASE} ${REPO} $(dirname $0)/.
+docker_image_build_and_push arm linux ${REPO} ${TAG} 
 
 docker_manifest_create_and_push ${REPO} ${REPO}:${TAG}
