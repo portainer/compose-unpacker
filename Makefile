@@ -21,7 +21,7 @@ download-binaries:
 	mkdir -pv $(dist)
 	@./setup.sh $(PLATFORM) $(ARCH)
 
-image: download-binaries build
+image: build download-binaries
 	docker build -f build/$(PLATFORM)/Dockerfile -t $(image) .
 
 clean:
