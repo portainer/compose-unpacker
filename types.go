@@ -27,7 +27,7 @@ type SwarmDeployCommand struct {
 	User                     string            `help:"Username for Git authentication." short:"u"`
 	Password                 string            `help:"Password or PAT for Git authentication" short:"p"`
 	Pull                     bool              `help:"Pull Image" short:"f"`
-	Prune                    bool              `help:"Prune" short:"r"`
+	Prune                    bool              `help:"Prune services during deployment" short:"r"`
 	Keep                     bool              `help:"Keep stack folder" short:"k"`
 	ENV                      map[string]string `help:"OS ENV for stack."`
 	GitRepository            string            `arg:"" help:"Git repository to deploy from." name:"git-repo"`
@@ -48,7 +48,7 @@ type UndeployCommand struct {
 
 type SwarmUndeployCommand struct {
 	Keep        bool   `help:"Keep stack folder" short:"k"`
-	ProjectName string `arg:"" help:"Name of the Compose stack." name:"project-name"`
+	ProjectName string `arg:"" help:"Name of the Compose (Swarm) stack." name:"project-name"`
 	Destination string `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
 }
 
@@ -56,8 +56,8 @@ var cli struct {
 	Debug         bool                 `help:"Enable debug mode."`
 	Deploy        DeployCommand        `cmd:"" help:"Deploy a stack from a Git repository."`
 	Undeploy      UndeployCommand      `cmd:"" help:"Remove a stack from a Git repository."`
-	SwarmDeploy   SwarmDeployCommand   `cmd:"" help:"Deploy a stack from a Git repository."`
-	SwarmUndeploy SwarmUndeployCommand `cmd:"" help:"Remove a stack from a Git repository."`
+	SwarmDeploy   SwarmDeployCommand   `cmd:"" help:"Deploy a Swarm stack from a Git repository."`
+	SwarmUndeploy SwarmUndeployCommand `cmd:"" help:"Remove a Swarm stack from a Git repository."`
 }
 
 func NewCommandExecutionContext(ctx context.Context, logger *zap.SugaredLogger) *CommandExecutionContext {
