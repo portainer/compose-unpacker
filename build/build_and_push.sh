@@ -1,6 +1,5 @@
 #!/bin/bash
 set -e
-set +x
 
 : ${REPO:=$1/compose-unpacker}
 : ${TAG:=$2}
@@ -11,18 +10,15 @@ docker_image_build_and_push()
   os=${2?required}
   repo=${3?required}
   tag=${4?required}
-  build_args=""
 
   dockerfile="build/linux/Dockerfile"
+  build_args=""
   if [[ ${os} == "windows" ]]; then
       dockerfile="build/windows/Dockerfile"
       build_args="--build-arg OSVERSION=1809"
   fi
 
-  echo docker buildx build -o type=docker -f ${dockerfile} ${build_args} --platform ${os}/${arch} -t ${repo}:${tag}-${os}-${arch} .
   docker buildx build -o type=docker -f ${dockerfile} ${build_args} --platform ${os}/${arch} -t ${repo}:${tag}-${os}-${arch} .
-
-  echo docker image push ${repo}:${tag}-${os}-${arch}
   docker image push ${repo}:${tag}-${os}-${arch}
 }
 
@@ -46,7 +42,7 @@ docker_manifest_create_and_push()
         arch="amd64";;
       *"arm64"*)
         arch="arm64";;
-      *"arm32"*)
+      *"arm"*)
         arch="arm32";;
       *)
         continue;;
