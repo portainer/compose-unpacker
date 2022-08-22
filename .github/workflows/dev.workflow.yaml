@@ -22,7 +22,7 @@ jobs:
         run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
 
       - name: build the image to portainer ci with PR number
-        if: ${{ github.event.pull_request.number != '' }}
+        # if: ${{ github.event.pull_request.number != '' }}
         run: |
           # make the script executeable 
           chmod +x "${GITHUB_WORKSPACE}/build/build_and_push.sh"
