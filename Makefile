@@ -32,4 +32,3 @@ image: build
 clean:
 	rm -rf $(dist)
 	rm -rf .tmp
-	-docker rmi $(image)

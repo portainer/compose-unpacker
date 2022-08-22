@@ -1,5 +1,5 @@
 #!/bin/bash
-#set -e
+set -e
 
 : ${REPO:=$1/compose-unpacker}
 : ${TAG:=$2}
@@ -66,8 +66,8 @@ make clean
 make PLATFORM=linux ARCH=arm
 docker_image_build_and_push arm linux ${REPO} ${TAG} 
 
-#make clean
-#make PLATFORM=windows ARCH=amd64
-#docker_image_build_and_push amd64 windows ${REPO} ${TAG} 
+make clean
+make PLATFORM=windows ARCH=amd64
+docker_image_build_and_push amd64 windows ${REPO} ${TAG} 
 
 docker_manifest_create_and_push ${REPO} ${TAG}
