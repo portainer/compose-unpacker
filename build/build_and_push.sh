@@ -19,7 +19,10 @@ docker_image_build_and_push()
       build_args="--build-arg OSVERSION=1809"
   fi
 
+  echo docker buildx build -o type=docker -f ${dockerfile} ${build_args} --platform ${os}/${arch} -t ${repo}:${tag}-${os}-${arch} .
   docker buildx build -o type=docker -f ${dockerfile} ${build_args} --platform ${os}/${arch} -t ${repo}:${tag}-${os}-${arch} .
+
+  echo docker image push ${repo}:${tag}-${os}-${arch}
   docker image push ${repo}:${tag}-${os}-${arch}
 }
 
