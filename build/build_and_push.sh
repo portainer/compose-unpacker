@@ -6,34 +6,57 @@
 
 docker_image_build_and_push()
 {
-    arch=${1?required}
-    platform=${2?required}
-    repo=${3?required}
-    tag=${4?required}
-    
-    dockerfile="build/linux/Dockerfile"
-    if [[ ${platform} == "windows" ]]; then
-        dockerfile="build/windows/Dockerfile"
-    fi
+  arch=${1?required}
+  os=${2?required}
+  repo=${3?required}
+  tag=${4?required}
+  build_args=""
 
-    docker buildx build -o type=docker -f ${dockerfile} --platform ${platform}/${arch} -t ${repo}:${tag}-${arch} .
-    docker image push ${repo}:${tag}-${arch}
+  dockerfile="build/linux/Dockerfile"
+  if [[ ${os} == "windows" ]]; then
+      dockerfile="build/windows/Dockerfile"
+      build_args="--build-arg OSVERSION=1809"
+  fi
+
+  docker buildx build -o type=docker -f ${dockerfile} ${build_args} --platform ${os}/${arch} -t ${repo}:${tag}-${os}-${arch} .
+  docker image push ${repo}:${tag}-${os}-${arch}
 }
 
 docker_manifest_create_and_push()
 {
-  images=$(docker image ls $1 --format '{{.Repository}}:{{.Tag}}')
-  echo docker manifest create --amend ${2?required} $images
-   for img in $images; do
-     docker manifest annotate $2 $1-${img##*-} --os linux --arch ${img##*-}
-   done
-   docker manifest push $2
-}
+  repo=${1?required}
+  tag=${2?required}
 
-# echo docker_image_build_and_push amd64 amd64:latest ${TAG} ${REPO} $(dirname $0)/.
+  images=$(docker image ls "${repo}:${tag}*" --format '{{.Repository}}:{{.Tag}}')
+
+  docker manifest create --amend ${repo}:${tag} $images
+  for img in $images; do    
+    if [[ "$img" == *"win"* ]]; then
+      os="windows"
+    else
+      os="linux"
+    fi
+
+    case ${img} in
+      *"amd64"*)
+        arch="amd64";;
+      *"arm64"*)
+        arch="arm64";;
+      *"arm32"*)
+        arch="arm32";;
+      *)
+        continue;;
+    esac
+
+    docker manifest annotate ${repo}:${tag} ${img} --os ${os} --arch ${arch}
+  done
+  
+  docker manifest push ${repo}:${tag}
+}
 
 docker_image_build_and_push amd64 linux ${REPO} ${TAG} 
 docker_image_build_and_push arm64 linux ${REPO} ${TAG} 
 docker_image_build_and_push arm linux ${REPO} ${TAG} 
+#docker_image_build_and_push amd64 windows ${REPO} ${TAG} 
 
-docker_manifest_create_and_push ${REPO} ${REPO}:${TAG}
+docker_manifest_create_and_push ${REPO} ${TAG}
