@@ -1,6 +1,5 @@
 FROM portainer/base
-ENV PATH="/app:$PATH"
-WORKDIR /app
+ARG ARCH
 
 COPY dist /app/
-ENTRYPOINT [ "./compose-unpacker" ]
+ENTRYPOINT [ "/app/compose-unpacker" ]
