@@ -12,16 +12,21 @@ endif
 
 dist := dist
 image := portainer/compose-unpacker:latest
-.PHONY: build image clean download-binaries
+.PHONY: binary build image clean download-binaries
 
-build:
+binary:
+	@echo "Building compose-unpacker for $(PLATFORM)/$(ARCH)..."
 	GOOS="$(PLATFORM)" GOARCH="$(ARCH)" CGO_ENABLED=0 go build -a --installsuffix cgo --ldflags '-s' -o dist/$(bin)
 
 download-binaries:
-	mkdir -pv $(dist)
+	@echo "Downloading binaries for $(PLATFORM)/$(ARCH)..."
+	@mkdir -pv $(dist)
 	@./setup.sh $(PLATFORM) $(ARCH)
 
-image: build download-binaries
+build: binary download-binaries
+	@echo "done."
+
+image: build
 	docker build -f build/$(PLATFORM)/Dockerfile -t $(image) .
 
 clean:
