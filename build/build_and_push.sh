@@ -1,6 +1,7 @@
 #!/bin/bash
 set -e
 
+
 : ${REPO:=$1/compose-unpacker}
 : ${TAG:=$2}
 
@@ -18,8 +19,10 @@ docker_image_build_and_push()
       build_args="--build-arg OSVERSION=1809"
   fi
 
+  set +x
   docker buildx build -o type=docker -f ${dockerfile} ${build_args} --platform ${os}/${arch} -t ${repo}:${tag}-${os}-${arch} .
   docker image push ${repo}:${tag}-${os}-${arch}
+  set -x
 }
 
 docker_manifest_create_and_push()
