@@ -2,7 +2,7 @@ name: Build compose-unpacker docker image to Portainer CI
 
 on: workflow_dispatch
 
-env: 
+env:
   GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
 jobs:
   build:
