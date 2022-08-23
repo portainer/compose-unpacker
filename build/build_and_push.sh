@@ -37,8 +37,11 @@ docker_manifest_create_and_push()
     arch=${build_parts[1]}
 
     image="${repo}:${tag}-${os}-${arch}"
+    echo "image: $image"
+    echo docker manifest create --amend ${repo}:${tag} $image
     docker manifest create --amend ${repo}:${tag} $image
-    docker manifest annotate ${repo}:${tag} ${img} --os ${os} --arch ${arch}
+    echo docker manifest annotate ${repo}:${tag} ${image} --os ${os} --arch ${arch}
+    docker manifest annotate ${repo}:${tag} ${image} --os ${os} --arch ${arch}
   done  
   
   docker manifest push ${repo}:${tag}
@@ -56,6 +59,5 @@ do
   make PLATFORM=${os} ARCH=${arch}
   docker_image_build_and_push ${os} ${arch} ${REPO} ${TAG} 
 done
-
 
 docker_manifest_create_and_push ${REPO} ${TAG}
