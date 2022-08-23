@@ -1,8 +1,14 @@
 name: Build compose-unpacker docker image to Portainer CI
 
-on: workflow_dispatch
+on:
+  push:
+    branches:
+      - develop
+  pull_request:
+    branches:
+      - develop
 
-env: 
+env:
   GITHUB_PR_NUMBER: ${{ github.event.pull_request.number }}
 jobs:
   build:
@@ -25,13 +31,13 @@ jobs:
         if: ${{ github.event.pull_request.number != '' }}
         run: |
           # make the script executeable 
-          chmod +x "${GITHUB_WORKSPACE}/build/build-and-push.sh"
+          chmod +x "${GITHUB_WORKSPACE}/build/build_and_push.sh"
           # run the script
-          "${GITHUB_WORKSPACE}/build/build-and-push.sh" portainerci pr$GITHUB_PR_NUMBER
+          "${GITHUB_WORKSPACE}/build/build_and_push.sh" portainerci pr$GITHUB_PR_NUMBER
       - name: build the image to portainer ci ( Develop Latest )
         if: ${{ github.ref == 'refs/heads/develop' }}
         run: |
           # make the script executable 
-          chmod +x "${GITHUB_WORKSPACE}/build/build-and-push.sh"
+          chmod +x "${GITHUB_WORKSPACE}/build/build_and_push.sh"
           # run the script
-          "${GITHUB_WORKSPACE}/build/build-and-push.sh" portainerci latest
+          "${GITHUB_WORKSPACE}/build/build_and_push.sh" portainerci latest
