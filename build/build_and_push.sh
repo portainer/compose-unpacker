@@ -37,7 +37,7 @@ docker_manifest_create_and_push()
     arch=${build_parts[1]}
 
     image="${repo}:${tag}-${os}-${arch}"
-    docker manifest create --amend ${repo}:${tag} $images
+    docker manifest create --amend ${repo}:${tag} $image
     docker manifest annotate ${repo}:${tag} ${img} --os ${os} --arch ${arch}
   done  
   
