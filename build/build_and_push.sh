@@ -56,7 +56,7 @@ do
   arch=${build_parts[1]}
 
   make clean
-  make PLATFORM=${os} ARCH=${arch}
+  make PLATFORM=${os} ARCH=${arch} build
   docker_image_build_and_push ${os} ${arch} ${REPO} ${TAG} 
 done
 
