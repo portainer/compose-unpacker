@@ -20,7 +20,7 @@ var errDeployComposeFailure = errors.New("stack deployment failure")
 
 func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Compose stack from Git repository", "repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination)
+		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination, "env", cmd.Env)
 
 	if cmd.User != "" && cmd.Password != "" {
 		cmdCtx.logger.Infow("Using Git authentication", "user", cmd.User, "password", "<redacted>")
@@ -100,8 +100,8 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 }
 
 func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
-	cmdCtx.logger.Infow("Deploying Swarm stack fromfrom Git repository", "repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination)
+	cmdCtx.logger.Infow("Deploying Swarm stack from a Git repository", "repository", cmd.GitRepository,
+		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination, "env", cmd.ENV)
 
 	if cmd.User != "" && cmd.Password != "" {
 		cmdCtx.logger.Infow("Using Git authentication", "user", cmd.User, "password", "<redacted>")

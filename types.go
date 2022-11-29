@@ -25,6 +25,7 @@ type DeployCommand struct {
 	Destination              string            `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
 	ComposeRelativeFilePaths []string          `arg:"" help:"Relative path to the Compose file."  name:"compose-file-paths"`
 }
+
 type SwarmDeployCommand struct {
 	User                     string            `help:"Username for Git authentication." short:"u"`
 	Password                 string            `help:"Password or PAT for Git authentication" short:"p"`
@@ -37,6 +38,7 @@ type SwarmDeployCommand struct {
 	Destination              string            `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
 	ComposeRelativeFilePaths []string          `arg:"" help:"Relative path to the Compose file."  name:"compose-file-paths"`
 }
+
 type UndeployCommand struct {
 	User     string `help:"Username for Git authentication." short:"u"`
 	Password string `help:"Password or PAT for Git authentication" short:"p"`
