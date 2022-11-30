@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alecthomas/kong v0.6.1
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/portainer/docker-compose-wrapper v0.0.0-20221129153823-8dc6124905ea
+	github.com/portainer/docker-compose-wrapper v0.0.0-20221130090259-b9f5420ba690
 	go.uber.org/zap v1.21.0
 )
 

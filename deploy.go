@@ -101,7 +101,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Swarm stack from a Git repository", "repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination, "env", cmd.ENV)
+		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination, "env", cmd.Env)
 
 	if cmd.User != "" && cmd.Password != "" {
 		cmdCtx.logger.Infow("Using Git authentication", "user", cmd.User, "password", "<redacted>")
@@ -170,14 +170,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		"workingDirectory", clonePath, "projectName", cmd.ProjectName)
 	args = append(args, cmd.ProjectName)
 
-	env := make([]string, 0)
-	if cmd.ENV != nil {
-		for k, v := range cmd.ENV {
-			env = append(env, k+"="+v)
-		}
-	}
-
-	err := runCommandAndCaptureStdErr(command, args, env, clonePath)
+	err := runCommandAndCaptureStdErr(command, args, cmd.Env, clonePath)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to swarm deplot Git repository", "error", err)
 		return errDeployComposeFailure
