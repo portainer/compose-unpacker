@@ -21,6 +21,7 @@ type DeployCommand struct {
 	Keep                     bool     `help:"Keep stack folder" short:"k"`
 	Env                      []string `help:"OS ENV for stack" example:"key=value"`
 	GitRepository            string   `arg:"" help:"Git repository to deploy from." name:"git-repo"`
+	Reference                string   `arg:"" help:"Reference of Git repository to deploy from." name:"git-ref"`
 	ProjectName              string   `arg:"" help:"Name of the Compose stack." name:"project-name"`
 	Destination              string   `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
 	ComposeRelativeFilePaths []string `arg:"" help:"Relative path to the Compose file."  name:"compose-file-paths"`
@@ -35,6 +36,7 @@ type SwarmDeployCommand struct {
 	Env                      []string `help:"OS ENV for stack."`
 	GitRepository            string   `arg:"" help:"Git repository to deploy from." name:"git-repo"`
 	ProjectName              string   `arg:"" help:"Name of the Swarm stack." name:"project-name"`
+	Reference                string   `arg:"" help:"Reference of Git repository to deploy from." name:"git-ref"`
 	Destination              string   `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
 	ComposeRelativeFilePaths []string `arg:"" help:"Relative path to the Compose file."  name:"compose-file-paths"`
 }
