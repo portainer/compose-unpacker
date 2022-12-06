@@ -40,7 +40,6 @@ func deploySwarmStack(logger *zap.SugaredLogger, cmd SwarmDeployCommand, clonePa
 
 func checkRunningService(logger *zap.SugaredLogger, cmd SwarmDeployCommand) ([]string, error) {
 	command := getDockerBinaryPath()
-	// stack services "--format={{.ID}}"
 	args := []string{"stack", "services", "--format={{.ID}}", cmd.ProjectName}
 
 	logger.Infow("Checking Swarm stack", "args", args)
