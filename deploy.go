@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
+	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
 )
 
@@ -19,7 +20,7 @@ var errDeployComposeFailure = errors.New("stack deployment failure")
 
 func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Compose stack from Git repository", "repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination)
+		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination, "env", cmd.Env)
 
 	if cmd.User != "" && cmd.Password != "" {
 		cmdCtx.logger.Infow("Using Git authentication", "user", cmd.User, "password", "<redacted>")
@@ -44,6 +45,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 				return errDeployComposeFailure
 			}
 		}
+
 		err = os.MkdirAll(mountPath, 0755)
 		if err != nil {
 			cmdCtx.logger.Errorw("Failed to create destination directory", "error", err)
@@ -70,6 +72,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		cmdCtx.logger.Errorw("Failed to create Compose deployer", "error", err)
 		return errDeployComposeFailure
 	}
+
 	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
 	for i := 0; i < len(cmd.ComposeRelativeFilePaths); i++ {
 		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
@@ -78,18 +81,27 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Deploying Compose stack", "composeFilePaths", composeFilePaths,
 		"workingDirectory", clonePath, "projectName", cmd.ProjectName)
 
-	err = deployer.Deploy(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths, "", true)
+	err = deployer.Deploy(cmdCtx.context, composeFilePaths, libstack.DeployOptions{
+		Options: libstack.Options{
+			WorkingDir:  clonePath,
+			ProjectName: cmd.ProjectName,
+			Env:         cmd.Env,
+		},
+		ForceRecreate: true,
+	})
+
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to deploy Compose stack", "error", err)
 		return errDeployComposeFailure
 	}
+
 	cmdCtx.logger.Info("Compose stack deployment complete")
 	return nil
 }
 
 func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
-	cmdCtx.logger.Infow("Deploying Swarm stack fromfrom Git repository", "repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination)
+	cmdCtx.logger.Infow("Deploying Swarm stack from a Git repository", "repository", cmd.GitRepository,
+		"composePath", cmd.ComposeRelativeFilePaths, "destination", cmd.Destination, "env", cmd.Env)
 
 	if cmd.User != "" && cmd.Password != "" {
 		cmdCtx.logger.Infow("Using Git authentication", "user", cmd.User, "password", "<redacted>")
@@ -158,14 +170,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		"workingDirectory", clonePath, "projectName", cmd.ProjectName)
 	args = append(args, cmd.ProjectName)
 
-	env := make([]string, 0)
-	if cmd.ENV != nil {
-		for k, v := range cmd.ENV {
-			env = append(env, k+"="+v)
-		}
-	}
-
-	err := runCommandAndCaptureStdErr(command, args, env, clonePath)
+	err := runCommandAndCaptureStdErr(command, args, cmd.Env, clonePath)
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to swarm deplot Git repository", "error", err)
 		return errDeployComposeFailure
