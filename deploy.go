@@ -120,15 +120,8 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 	clonePath := path.Join(mountPath, repositoryName)
 
-	// Check if the directory exists. If yes, the process is doing stack redeployment.
-	forceUpdate := false
-	info, err := os.Stat(clonePath)
-	if err == nil && info.IsDir() {
-		forceUpdate = true
-	}
-
 	// Record running services before deployment/redeployment
-	serviceIDs, err := checkRunningService(cmdCtx.logger, *cmd)
+	serviceIDs, err := checkRunningService(cmdCtx.logger, cmd.ProjectName)
 	if err != nil {
 		return err
 	}
@@ -136,6 +129,15 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	runningServices := make(map[string]struct{}, 0)
 	for _, serviceID := range serviceIDs {
 		runningServices[serviceID] = struct{}{}
+	}
+
+	forceUpdate := false
+	if len(runningServices) > 0 {
+		// To determine whether the current service needs to force update, it
+		// is more reliable to check if there is a created service with the
+		// stack name rather than to check if there is an existing git repository.
+		forceUpdate = true
+		cmdCtx.logger.Info("Set to force update")
 	}
 
 	if !cmd.Keep { //stack create request
@@ -178,7 +180,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	if forceUpdate {
 		// If the process executes redeployment, the running services need
 		// to be recreated forcibly
-		updatedServiceIDs, err := checkRunningService(cmdCtx.logger, *cmd)
+		updatedServiceIDs, err := checkRunningService(cmdCtx.logger, cmd.ProjectName)
 		if err != nil {
 			return err
 		}
@@ -186,7 +188,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		for _, updatedServiceID := range updatedServiceIDs {
 			_, ok := runningServices[updatedServiceID]
 			if ok {
-				_ = updateService(cmdCtx.logger, *cmd, updatedServiceID)
+				_ = updateService(cmdCtx.logger, updatedServiceID)
 			}
 		}
 	}
