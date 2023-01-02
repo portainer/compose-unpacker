@@ -57,7 +57,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			Depth: 1,
 		}
 
-		cmdCtx.logger.Infow("Cloning git repository", "path", clonePath, "cloneOptions", gitOptions)
+		cmdCtx.logger.Infow("Cloning git repository", "path", clonePath, "cloneOptions", git.CloneOptions{URL: gitOptions.URL, Depth: gitOptions.Depth})
 		_, err = git.PlainCloneContext(cmdCtx.context, clonePath, false, &gitOptions)
 		if err != nil {
 			cmdCtx.logger.Errorw("Failed to clone Git repository", "error", err)
@@ -127,7 +127,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			Depth: 100,
 		}
 
-		cmdCtx.logger.Infow("Cloning git repository", "path", clonePath, "cloneOptions", gitOptions)
+		cmdCtx.logger.Infow("Cloning git repository", "path", clonePath, "cloneOptions", git.CloneOptions{URL: gitOptions.URL, Depth: gitOptions.Depth})
 
 		_, err = git.PlainCloneContext(cmdCtx.context, clonePath, false, &gitOptions)
 		if err != nil {
