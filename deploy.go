@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
 	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
@@ -54,9 +55,10 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		cmdCtx.logger.Infow("Creating target destination directory on disk", "directory", mountPath)
 		gitOptions := git.CloneOptions{
-			URL:   cmd.GitRepository,
-			Auth:  getAuth(cmd.User, cmd.Password),
-			Depth: 1,
+			URL:           cmd.GitRepository,
+			ReferenceName: plumbing.ReferenceName(cmd.Reference),
+			Auth:          getAuth(cmd.User, cmd.Password),
+			Depth:         1,
 		}
 
 		cmdCtx.logger.Infow("Cloning git repository", "path", clonePath, "cloneOptions", git.CloneOptions{URL: gitOptions.URL, Depth: gitOptions.Depth})
@@ -117,6 +119,27 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 	clonePath := path.Join(mountPath, repositoryName)
+
+	// Record running services before deployment/redeployment
+	serviceIDs, err := checkRunningService(cmdCtx.logger, cmd.ProjectName)
+	if err != nil {
+		return err
+	}
+
+	runningServices := make(map[string]struct{}, 0)
+	for _, serviceID := range serviceIDs {
+		runningServices[serviceID] = struct{}{}
+	}
+
+	forceUpdate := false
+	if len(runningServices) > 0 {
+		// To determine whether the current service needs to force update, it
+		// is more reliable to check if there is a created service with the
+		// stack name rather than to check if there is an existing git repository.
+		forceUpdate = true
+		cmdCtx.logger.Info("Set to force update")
+	}
+
 	if !cmd.Keep { //stack create request
 		_, err := os.Stat(mountPath)
 		if err == nil {
@@ -134,9 +157,10 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		cmdCtx.logger.Infow("Creating target destination directory on disk", "directory", mountPath)
 		gitOptions := git.CloneOptions{
-			URL:   cmd.GitRepository,
-			Auth:  getAuth(cmd.User, cmd.Password),
-			Depth: 100,
+			URL:           cmd.GitRepository,
+			ReferenceName: plumbing.ReferenceName(cmd.Reference),
+			Auth:          getAuth(cmd.User, cmd.Password),
+			Depth:         100,
 		}
 
 		cmdCtx.logger.Infow("Cloning git repository", "path", clonePath, "cloneOptions", git.CloneOptions{URL: gitOptions.URL, Depth: gitOptions.Depth})
@@ -148,34 +172,27 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		}
 	}
 
-	command := path.Join(BIN_PATH, "docker")
-	if runtime.GOOS == "windows" {
-		command = path.Join(BIN_PATH, "docker.exe")
-	}
-	args := make([]string, 0)
-
-	if cmd.Prune {
-		args = append(args, "stack", "deploy", "--prune", "--with-registry-auth")
-	} else {
-		args = append(args, "stack", "deploy", "--with-registry-auth")
-	}
-	if !cmd.Pull {
-		args = append(args, "--resolve-image=never")
-	}
-
-	for _, cfile := range cmd.ComposeRelativeFilePaths {
-		args = append(args, "--compose-file", path.Join(clonePath, cfile))
-	}
-	cmdCtx.logger.Infow("Deploying Swarm stack", "composeFilePaths", cmd.ComposeRelativeFilePaths,
-		"workingDirectory", clonePath, "projectName", cmd.ProjectName)
-	args = append(args, cmd.ProjectName)
-
-	err := runCommandAndCaptureStdErr(command, args, cmd.Env, clonePath)
+	err = deploySwarmStack(cmdCtx.logger, *cmd, clonePath)
 	if err != nil {
-		cmdCtx.logger.Errorw("Failed to swarm deplot Git repository", "error", err)
-		return errDeployComposeFailure
+		return err
 	}
-	cmdCtx.logger.Info("Swarm stack deployment complete")
+
+	if forceUpdate {
+		// If the process executes redeployment, the running services need
+		// to be recreated forcibly
+		updatedServiceIDs, err := checkRunningService(cmdCtx.logger, cmd.ProjectName)
+		if err != nil {
+			return err
+		}
+
+		for _, updatedServiceID := range updatedServiceIDs {
+			_, ok := runningServices[updatedServiceID]
+			if ok {
+				_ = updateService(cmdCtx.logger, updatedServiceID)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -197,6 +214,23 @@ func runCommandAndCaptureStdErr(command string, args []string, env []string, wor
 	return nil
 }
 
+func runCommand(command string, args []string) (string, error) {
+	var (
+		stderr bytes.Buffer
+		stdout bytes.Buffer
+	)
+	cmd := exec.Command(command, args...)
+	cmd.Stderr = &stderr
+	cmd.Stdout = &stdout
+
+	err := cmd.Run()
+	if err != nil {
+		return stdout.String(), errors.New(stderr.String())
+	}
+
+	return stdout.String(), nil
+}
+
 func getAuth(username, password string) *http.BasicAuth {
 	if password != "" {
 		if username == "" {
@@ -212,4 +246,12 @@ func getAuth(username, password string) *http.BasicAuth {
 
 func makeWorkingDir(target, stackName string) string {
 	return filepath.Join(target, "stacks", stackName)
+}
+
+func getDockerBinaryPath() string {
+	command := path.Join(BIN_PATH, "docker")
+	if runtime.GOOS == "windows" {
+		command = path.Join(BIN_PATH, "docker.exe")
+	}
+	return command
 }
