@@ -1,16 +1,14 @@
 package main
 
 import (
-	"errors"
 	"os"
 	"path"
 	"runtime"
 	"strings"
 
+	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
 )
-
-var errUndeployComposeFailure = errors.New("compose stack remove failure")
 
 func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Infow("Undeploying Compose stack from Git repository",
@@ -26,6 +24,7 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		return errDeployComposeFailure
 	}
+
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
 	clonePath := path.Join(mountPath, repositoryName)
@@ -36,6 +35,7 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	cmdCtx.logger.Debugw("Creating Compose deployer",
 		"binPath", BIN_PATH,
 	)
+
 	deployer, err := compose.NewComposeDeployer(BIN_PATH, "")
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to create Compose deployer",
@@ -44,22 +44,29 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 		return errDeployComposeFailure
 	}
+
 	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
 	for i := 0; i < len(cmd.ComposeRelativeFilePaths); i++ {
 		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
 	}
+
 	cmdCtx.logger.Debugw("Undeploying Compose stack",
 		"composeFilePaths", composeFilePaths,
 		"workingDirectory", clonePath,
 		"projectName", cmd.ProjectName,
 	)
-	err = deployer.Remove(cmdCtx.context, clonePath, "", cmd.ProjectName, composeFilePaths, "")
+
+	err = deployer.Remove(cmdCtx.context, composeFilePaths, libstack.Options{
+		ProjectName: cmd.ProjectName,
+		WorkingDir:  clonePath,
+	})
 	if err != nil {
 		cmdCtx.logger.Errorw("Failed to remove Compose stack",
 			"error", err,
 		)
 		return errDeployComposeFailure
 	}
+
 	cmdCtx.logger.Info("Compose stack remove complete")
 	if !cmd.Keep { //stack stop request
 		err = os.RemoveAll(mountPath)
