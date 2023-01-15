@@ -40,4 +40,4 @@ jobs:
           # make the script executable 
           chmod +x "${GITHUB_WORKSPACE}/build/build_and_push.sh"
           # run the script
-          "${GITHUB_WORKSPACE}/build/build_and_push.sh" portainerci latest
+          "${GITHUB_WORKSPACE}/build/build_and_push.sh" portainerci develop
