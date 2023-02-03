@@ -71,7 +71,6 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			log.Error().
 				Err(err).
 				Msg("Failed to remove Compose stack project folder")
-			return errDeployComposeFailure
 		}
 	}
 
@@ -88,12 +87,14 @@ func (cmd *SwarmUndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	if runtime.GOOS == "windows" {
 		command = path.Join(BIN_PATH, "docker.exe")
 	}
+
 	args := make([]string, 0)
 	args = append(args, "stack", "rm", cmd.ProjectName)
 	err := runCommandAndCaptureStdErr(command, args, nil, "")
 	if err != nil {
 		return err
 	}
+
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 	if !cmd.Keep { //stack stop request
 		err = os.RemoveAll(mountPath)
@@ -101,8 +102,8 @@ func (cmd *SwarmUndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			log.Error().
 				Err(err).
 				Msg("Failed to remove Compose stack project folder")
-			return errDeployComposeFailure
 		}
 	}
+
 	return nil
 }
