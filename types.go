@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"go.uber.org/zap"
+	"github.com/portainer/compose-unpacker/log"
 )
 
 const (
@@ -13,8 +13,8 @@ const (
 
 type CommandExecutionContext struct {
 	context context.Context
-	logger  *zap.SugaredLogger
 }
+
 type DeployCommand struct {
 	User                     string   `help:"Username for Git authentication." short:"u"`
 	Password                 string   `help:"Password or PAT for Git authentication" short:"p"`
@@ -59,16 +59,16 @@ type SwarmUndeployCommand struct {
 }
 
 var cli struct {
-	Debug         bool                 `help:"Enable debug mode."`
+	LogLevel      log.Level            `kong:"help='Set the logging level',default='INFO',enum='DEBUG,INFO,WARN,ERROR',env='LOG_LEVEL'"`
+	PrettyLog     bool                 `kong:"help='Whether to enable or disable colored logs output',default='false',env='PRETTY_LOG'"`
 	Deploy        DeployCommand        `cmd:"" help:"Deploy a stack from a Git repository."`
 	Undeploy      UndeployCommand      `cmd:"" help:"Remove a stack from a Git repository."`
 	SwarmDeploy   SwarmDeployCommand   `cmd:"" help:"Deploy a Swarm stack from a Git repository."`
 	SwarmUndeploy SwarmUndeployCommand `cmd:"" help:"Remove a Swarm stack from a Git repository."`
 }
 
-func NewCommandExecutionContext(ctx context.Context, logger *zap.SugaredLogger) *CommandExecutionContext {
+func NewCommandExecutionContext(ctx context.Context) *CommandExecutionContext {
 	return &CommandExecutionContext{
 		context: ctx,
-		logger:  logger,
 	}
 }
