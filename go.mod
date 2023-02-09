@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alecthomas/kong v0.6.1
 	github.com/go-git/go-git/v5 v5.4.2
-	github.com/portainer/docker-compose-wrapper v0.0.0-20230209071700-ee11af9c546a
+	github.com/portainer/docker-compose-wrapper v0.0.0-20230209082344-8a5b52de366f
 	github.com/rs/zerolog v1.28.0
 )
 
