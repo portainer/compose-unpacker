@@ -52,9 +52,8 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		Str("projectName", cmd.ProjectName).
 		Msg("Undeploying Compose stack")
 
-	err = deployer.Remove(cmdCtx.context, composeFilePaths, libstack.Options{
-		ProjectName: cmd.ProjectName,
-		WorkingDir:  clonePath,
+	err = deployer.Remove(cmdCtx.context, cmd.ProjectName, nil, libstack.Options{
+		WorkingDir: clonePath,
 	})
 	if err != nil {
 		log.Error().

@@ -73,6 +73,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/portainer/docker-compose-wrapper v0.0.0-20221220085846-1dd2852f20e1 h1:hak2lYr+0DvQUShb1gX+OjqYQafmgCU3SsJ4HZc/gV8=
 github.com/portainer/docker-compose-wrapper v0.0.0-20221220085846-1dd2852f20e1/go.mod h1:03UmPLyjiPUexGJuW20mQXvmsoSpeErvMlItJGtq/Ww=
+github.com/portainer/docker-compose-wrapper v0.0.0-20230209071700-ee11af9c546a h1:4VGM1OH15fqm5rgki0eLF6vND/NxHfoPt3CA6/YdA0k=
+github.com/portainer/docker-compose-wrapper v0.0.0-20230209071700-ee11af9c546a/go.mod h1:03UmPLyjiPUexGJuW20mQXvmsoSpeErvMlItJGtq/Ww=
 github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/zerolog v1.28.0 h1:MirSo27VyNi7RJYP3078AA1+Cyzd2GB66qy3aUHvsWY=
 github.com/rs/zerolog v1.28.0/go.mod h1:NILgTygv/Uej1ra5XxGf82ZFSLk58MFGAUS2o6usyD0=
