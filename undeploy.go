@@ -27,12 +27,6 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
-	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
-	clonePath := path.Join(mountPath, repositoryName)
-	log.Debug().
-		Str("path", clonePath).
-		Str("binPath", BIN_PATH).
-		Msg("Creating Compose deployer")
 
 	deployer, err := compose.NewComposeDeployer(BIN_PATH, "")
 	if err != nil {
@@ -41,20 +35,11 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		return errDeployComposeFailure
 	}
 
-	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
-	for i := 0; i < len(cmd.ComposeRelativeFilePaths); i++ {
-		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
-	}
-
 	log.Debug().
-		Strs("composeFilePaths", composeFilePaths).
-		Str("workingDirectory", clonePath).
 		Str("projectName", cmd.ProjectName).
 		Msg("Undeploying Compose stack")
 
-	err = deployer.Remove(cmdCtx.context, cmd.ProjectName, nil, libstack.Options{
-		WorkingDir: clonePath,
-	})
+	err = deployer.Remove(cmdCtx.context, cmd.ProjectName, nil, libstack.Options{})
 	if err != nil {
 		log.Error().
 			Err(err).
