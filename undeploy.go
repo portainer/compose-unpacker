@@ -28,7 +28,7 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 
-	deployer, err := compose.NewComposeDeployer(BIN_PATH, "")
+	deployer, err := compose.NewComposeDeployer(BIN_PATH, PORTAINER_DOCKER_CONFIG_PATH)
 	if err != nil {
 		log.Error().Err(err).Msg("Failed to create Compose deployer")
 
