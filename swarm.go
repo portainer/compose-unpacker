@@ -10,7 +10,7 @@ import (
 
 func deploySwarmStack(cmd SwarmDeployCommand, clonePath string) error {
 	command := getDockerBinaryPath()
-	args := make([]string, 0)
+	args := []string{"--config", PORTAINER_DOCKER_CONFIG_PATH}
 
 	if cmd.Prune {
 		args = append(args, "stack", "deploy", "--prune", "--with-registry-auth")
@@ -47,7 +47,7 @@ func deploySwarmStack(cmd SwarmDeployCommand, clonePath string) error {
 
 func checkRunningService(projectName string) ([]string, error) {
 	command := getDockerBinaryPath()
-	args := []string{"stack", "services", "--format={{.ID}}", projectName}
+	args := []string{"--config", PORTAINER_DOCKER_CONFIG_PATH, "stack", "services", "--format={{.ID}}", projectName}
 
 	log.Info().
 		Strs("args", args).
@@ -70,7 +70,7 @@ func checkRunningService(projectName string) ([]string, error) {
 
 func updateService(serviceID string) error {
 	command := getDockerBinaryPath()
-	args := []string{"service", "update", serviceID, "--force"}
+	args := []string{"--config", PORTAINER_DOCKER_CONFIG_PATH, "service", "update", serviceID, "--force"}
 
 	log.Info().
 		Strs("args", args).

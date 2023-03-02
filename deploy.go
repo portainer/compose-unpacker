@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"os"
 	"os/exec"
 	"path"
@@ -19,6 +20,8 @@ import (
 )
 
 var errDeployComposeFailure = errors.New("stack deployment failure")
+var errDockerLoginFailure = errors.New("docker login failure")
+var errDockerLogoutFailure = errors.New("docker logout failure")
 
 func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	log.Info().
@@ -27,6 +30,12 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		Str("destination", cmd.Destination).
 		Strs("env", cmd.Env).
 		Msg("Deploying Compose stack from Git repository")
+
+	defer dockerLogout(cmd.Registry)
+	err := dockerLogin(cmd.Registry)
+	if err != nil {
+		return err
+	}
 
 	if cmd.User != "" && cmd.Password != "" {
 		log.Info().
@@ -97,7 +106,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		}
 	}
 
-	deployer, err := compose.NewComposeDeployer(BIN_PATH, "")
+	deployer, err := compose.NewComposeDeployer(BIN_PATH, PORTAINER_DOCKER_CONFIG_PATH)
 	if err != nil {
 		log.Error().
 			Err(err).
@@ -142,6 +151,12 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		Strs("composePath", cmd.ComposeRelativeFilePaths).
 		Str("destination", cmd.Destination).
 		Msg("Deploying Swarm stack from a Git repository")
+
+	defer dockerLogout(cmd.Registry)
+	err := dockerLogin(cmd.Registry)
+	if err != nil {
+		return err
+	}
 
 	if cmd.User != "" && cmd.Password != "" {
 		log.Info().
@@ -251,6 +266,58 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 				_ = updateService(updatedServiceID)
 			}
 		}
+	}
+
+	return nil
+}
+
+func dockerLogin(registries []string) error {
+	command := getDockerBinaryPath()
+
+	for _, registry := range registries {
+		credentials := strings.Split(registry, ":")
+		if len(credentials) != 3 {
+			return errDockerLoginFailure
+		}
+
+		args := make([]string, 0)
+		args = append(args, "--config", PORTAINER_DOCKER_CONFIG_PATH, "login", "--username", credentials[0], "--password", credentials[1], credentials[2])
+
+		err := runCommandAndCaptureStdErr(command, args, nil, "")
+		if err != nil {
+			log.Error().
+				Err(err).
+				Msg(fmt.Sprintf("Docker login %s failed", credentials[2]))
+			return errDockerLoginFailure
+		}
+		log.Info().
+			Msg(fmt.Sprintf("Docker login %s successed", credentials[2]))
+	}
+
+	return nil
+}
+
+func dockerLogout(registries []string) error {
+	command := getDockerBinaryPath()
+
+	for _, registry := range registries {
+		credentials := strings.Split(registry, ":")
+		if len(credentials) != 3 {
+			return errDockerLogoutFailure
+		}
+
+		args := make([]string, 0)
+		args = append(args, "--config", PORTAINER_DOCKER_CONFIG_PATH, "logout", credentials[2])
+
+		err := runCommandAndCaptureStdErr(command, args, nil, "")
+		if err != nil {
+			log.Error().
+				Err(err).
+				Msg(fmt.Sprintf("Docker logout %s failed", credentials[2]))
+			return errDockerLogoutFailure
+		}
+		log.Info().
+			Msg(fmt.Sprintf("Docker logout %s successed", credentials[2]))
 	}
 
 	return nil
