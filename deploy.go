@@ -29,6 +29,7 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 		Strs("composePath", cmd.ComposeRelativeFilePaths).
 		Str("destination", cmd.Destination).
 		Strs("env", cmd.Env).
+		Bool("skipTLSVerify", cmd.SkipTLSVerify).
 		Msg("Deploying Compose stack from Git repository")
 
 	defer dockerLogout(cmd.Registry)
@@ -84,10 +85,11 @@ func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			Msg("Creating target destination directory on disk")
 
 		gitOptions := git.CloneOptions{
-			URL:           cmd.GitRepository,
-			ReferenceName: plumbing.ReferenceName(cmd.Reference),
-			Auth:          getAuth(cmd.User, cmd.Password),
-			Depth:         1,
+			URL:             cmd.GitRepository,
+			ReferenceName:   plumbing.ReferenceName(cmd.Reference),
+			Auth:            getAuth(cmd.User, cmd.Password),
+			Depth:           1,
+			InsecureSkipTLS: cmd.SkipTLSVerify,
 		}
 
 		log.Info().
@@ -225,10 +227,11 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 			Msg("Creating target destination directory on disk")
 
 		gitOptions := git.CloneOptions{
-			URL:           cmd.GitRepository,
-			ReferenceName: plumbing.ReferenceName(cmd.Reference),
-			Auth:          getAuth(cmd.User, cmd.Password),
-			Depth:         100,
+			URL:             cmd.GitRepository,
+			ReferenceName:   plumbing.ReferenceName(cmd.Reference),
+			Auth:            getAuth(cmd.User, cmd.Password),
+			Depth:           100,
+			InsecureSkipTLS: cmd.SkipTLSVerify,
 		}
 
 		log.Info().
