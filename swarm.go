@@ -5,12 +5,12 @@ import (
 	"runtime"
 	"strings"
 
-	"go.uber.org/zap"
+	"github.com/rs/zerolog/log"
 )
 
-func deploySwarmStack(logger *zap.SugaredLogger, cmd SwarmDeployCommand, clonePath string) error {
+func deploySwarmStack(cmd SwarmDeployCommand, clonePath string) error {
 	command := getDockerBinaryPath()
-	args := make([]string, 0)
+	args := []string{"--config", PORTAINER_DOCKER_CONFIG_PATH}
 
 	if cmd.Prune {
 		args = append(args, "stack", "deploy", "--prune", "--with-registry-auth")
@@ -24,48 +24,67 @@ func deploySwarmStack(logger *zap.SugaredLogger, cmd SwarmDeployCommand, clonePa
 	for _, cfile := range cmd.ComposeRelativeFilePaths {
 		args = append(args, "--compose-file", path.Join(clonePath, cfile))
 	}
-	logger.Infow("Deploying Swarm stack", "composeFilePaths", cmd.ComposeRelativeFilePaths,
-		"workingDirectory", clonePath, "projectName", cmd.ProjectName)
+	log.Info().
+		Strs("composeFilePaths", cmd.ComposeRelativeFilePaths).
+		Str("workingDirectory", clonePath).
+		Str("projectName", cmd.ProjectName).
+		Msg("Deploying Swarm stack")
+
 	args = append(args, cmd.ProjectName)
 
 	err := runCommandAndCaptureStdErr(command, args, cmd.Env, clonePath)
 	if err != nil {
-		logger.Errorw("Failed to swarm deploy Git repository", "error", err)
+		log.Error().
+			Err(err).
+			Msg("Failed to swarm deploy Git repository")
 		return errDeployComposeFailure
 	}
-	logger.Info("Swarm stack deployment complete")
+	log.Info().
+		Msg("Swarm stack deployment complete")
 
 	return err
 }
 
-func checkRunningService(logger *zap.SugaredLogger, projectName string) ([]string, error) {
+func checkRunningService(projectName string) ([]string, error) {
 	command := getDockerBinaryPath()
-	args := []string{"stack", "services", "--format={{.ID}}", projectName}
+	args := []string{"--config", PORTAINER_DOCKER_CONFIG_PATH, "stack", "services", "--format={{.ID}}", projectName}
 
-	logger.Infow("Checking Swarm stack", "args", args)
+	log.Info().
+		Strs("args", args).
+		Msg("Checking Swarm stack")
+
 	output, err := runCommand(command, args)
 	if err != nil {
-		logger.Errorw("Failed to check running swarm services", "error", err)
+		log.Error().
+			Err(err).
+			Msg("Failed to check running swarm services")
 		return nil, err
 	}
 
 	serviceIDs := splitLines(string(output))
-	logger.Infow("Checking stack services", "service IDs", serviceIDs)
+	log.Info().
+		Strs("serviceIDs", serviceIDs).
+		Msg("Checking stack services")
 	return serviceIDs, nil
 }
 
-func updateService(logger *zap.SugaredLogger, serviceID string) error {
+func updateService(serviceID string) error {
 	command := getDockerBinaryPath()
-	args := []string{"service", "update", serviceID, "--force"}
+	args := []string{"--config", PORTAINER_DOCKER_CONFIG_PATH, "service", "update", serviceID, "--force"}
 
-	logger.Infow("Updating Swarm service", "args", args)
+	log.Info().
+		Strs("args", args).
+		Msg("Updating Swarm service")
 	_, err := runCommand(command, args)
 	if err != nil {
-		logger.Errorw("Failed to update swarm services", "error", err)
+		log.Error().
+			Err(err).
+			Msg("Failed to update swarm services")
 		return err
 	}
 
-	logger.Info("Update stack service completed")
+	log.Info().
+		Msg("Update stack service completed")
 	return nil
 }
 

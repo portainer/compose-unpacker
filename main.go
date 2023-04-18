@@ -3,30 +3,11 @@ package main
 import (
 	"context"
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/alecthomas/kong"
-	"go.uber.org/zap"
+	"github.com/portainer/compose-unpacker/log"
 )
-
-func initializeLogger(debug bool) (*zap.SugaredLogger, error) {
-	if debug {
-		logger, err := zap.NewDevelopment()
-		if err != nil {
-			return nil, err
-		}
-
-		return logger.Sugar(), nil
-	}
-
-	logger, err := zap.NewProduction()
-	if err != nil {
-		return nil, err
-	}
-
-	return logger.Sugar(), nil
-}
 
 func main() {
 	ctx := context.Background()
@@ -39,13 +20,11 @@ func main() {
 			Summary: true,
 		}))
 
-	logger, err := initializeLogger(cli.Debug)
-	if err != nil {
-		log.Fatalf("Unable to initialize logger: %s", err)
-	}
+	log.ConfigureLogger(cli.PrettyLog)
+	log.SetLoggingLevel(log.Level(cli.LogLevel))
 
-	cmdCtx := NewCommandExecutionContext(ctx, logger)
-	err = cliCtx.Run(cmdCtx)
+	cmdCtx := NewCommandExecutionContext(ctx)
+	err := cliCtx.Run(cmdCtx)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(UNPACKER_EXIT_ERROR)

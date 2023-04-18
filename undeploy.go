@@ -8,71 +8,53 @@ import (
 
 	libstack "github.com/portainer/docker-compose-wrapper"
 	"github.com/portainer/docker-compose-wrapper/compose"
+	"github.com/rs/zerolog/log"
 )
 
 func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
-	cmdCtx.logger.Infow("Undeploying Compose stack from Git repository",
-		"repository", cmd.GitRepository,
-		"composePath", cmd.ComposeRelativeFilePaths,
-	)
+	log.Info().
+		Str("repository", cmd.GitRepository).
+		Strs("composePath", cmd.ComposeRelativeFilePaths).
+		Msg("Undeploying Compose stack from Git repository")
 
 	i := strings.LastIndex(cmd.GitRepository, "/")
 	if i == -1 {
-		cmdCtx.logger.Errorw("Invalid Git repository URL",
-			"repository", cmd.GitRepository,
-		)
+		log.Error().
+			Str("repository", cmd.GitRepository).
+			Msg("Invalid Git repository URL")
 
 		return errDeployComposeFailure
 	}
 
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
-	repositoryName := strings.TrimSuffix(cmd.GitRepository[i+1:], ".git")
-	clonePath := path.Join(mountPath, repositoryName)
-	cmdCtx.logger.Debugw("Current git repository",
-		"path", clonePath,
-	)
 
-	cmdCtx.logger.Debugw("Creating Compose deployer",
-		"binPath", BIN_PATH,
-	)
-
-	deployer, err := compose.NewComposeDeployer(BIN_PATH, "")
+	deployer, err := compose.NewComposeDeployer(BIN_PATH, PORTAINER_DOCKER_CONFIG_PATH)
 	if err != nil {
-		cmdCtx.logger.Errorw("Failed to create Compose deployer",
-			"error", err,
-		)
+		log.Error().Err(err).Msg("Failed to create Compose deployer")
 
 		return errDeployComposeFailure
 	}
 
-	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
-	for i := 0; i < len(cmd.ComposeRelativeFilePaths); i++ {
-		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
-	}
+	log.Debug().
+		Str("projectName", cmd.ProjectName).
+		Msg("Undeploying Compose stack")
 
-	cmdCtx.logger.Debugw("Undeploying Compose stack",
-		"composeFilePaths", composeFilePaths,
-		"workingDirectory", clonePath,
-		"projectName", cmd.ProjectName,
-	)
-
-	err = deployer.Remove(cmdCtx.context, composeFilePaths, libstack.Options{
-		ProjectName: cmd.ProjectName,
-		WorkingDir:  clonePath,
-	})
+	err = deployer.Remove(cmdCtx.context, cmd.ProjectName, nil, libstack.Options{})
 	if err != nil {
-		cmdCtx.logger.Errorw("Failed to remove Compose stack",
-			"error", err,
-		)
+		log.Error().
+			Err(err).
+			Msg("Failed to remove Compose stack")
 		return errDeployComposeFailure
 	}
 
-	cmdCtx.logger.Info("Compose stack remove complete")
+	log.Info().Msg("Compose stack remove complete")
+
 	if !cmd.Keep { //stack stop request
 		err = os.RemoveAll(mountPath)
 		if err != nil {
-			cmdCtx.logger.Errorw("Failed to remove Compose stack project folder", "error", err)
-			return errDeployComposeFailure
+			log.Error().
+				Err(err).
+				Msg("Failed to remove Compose stack project folder")
 		}
 	}
 
@@ -80,27 +62,32 @@ func (cmd *UndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 }
 
 func (cmd *SwarmUndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
-	cmdCtx.logger.Infow("Undeploying Swarm stack from Git repository",
-		"stack name", cmd.ProjectName,
-		"destination", cmd.Destination,
-	)
+	log.Info().
+		Str("stack name", cmd.ProjectName).
+		Str("destination", cmd.Destination).
+		Msg("Undeploying Swarm stack from Git repository")
+
 	command := path.Join(BIN_PATH, "docker")
 	if runtime.GOOS == "windows" {
 		command = path.Join(BIN_PATH, "docker.exe")
 	}
+
 	args := make([]string, 0)
 	args = append(args, "stack", "rm", cmd.ProjectName)
 	err := runCommandAndCaptureStdErr(command, args, nil, "")
 	if err != nil {
 		return err
 	}
+
 	mountPath := makeWorkingDir(cmd.Destination, cmd.ProjectName)
 	if !cmd.Keep { //stack stop request
 		err = os.RemoveAll(mountPath)
 		if err != nil {
-			cmdCtx.logger.Errorw("Failed to remove Compose stack project folder", "error", err)
-			return errDeployComposeFailure
+			log.Error().
+				Err(err).
+				Msg("Failed to remove Compose stack project folder")
 		}
 	}
+
 	return nil
 }
