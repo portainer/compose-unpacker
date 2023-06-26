@@ -14,8 +14,8 @@ import (
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/go-git/go-git/v5/plumbing/transport/http"
-	libstack "github.com/portainer/docker-compose-wrapper"
-	"github.com/portainer/docker-compose-wrapper/compose"
+	"github.com/portainer/portainer/pkg/libstack"
+	"github.com/portainer/portainer/pkg/libstack/compose"
 	"github.com/rs/zerolog/log"
 )
 
