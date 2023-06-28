@@ -65,6 +65,10 @@ type SwarmUndeployCommand struct {
 	Destination string `arg:"" help:"Path on disk where the Git repository will be cloned." type:"path" name:"destination"`
 }
 
+type RemoveDirCommand struct {
+	Path string `arg:"" help:"The path be removed." name:"path"`
+}
+
 var cli struct {
 	LogLevel      log.Level            `kong:"help='Set the logging level',default='INFO',enum='DEBUG,INFO,WARN,ERROR',env='LOG_LEVEL'"`
 	PrettyLog     bool                 `kong:"help='Whether to enable or disable colored logs output',default='false',env='PRETTY_LOG'"`
@@ -72,6 +76,7 @@ var cli struct {
 	Undeploy      UndeployCommand      `cmd:"" help:"Remove a stack from a Git repository."`
 	SwarmDeploy   SwarmDeployCommand   `cmd:"" help:"Deploy a Swarm stack from a Git repository."`
 	SwarmUndeploy SwarmUndeployCommand `cmd:"" help:"Remove a Swarm stack from a Git repository."`
+	RemoveDir     RemoveDirCommand     `cmd:"" help:"Remove a directory."`
 }
 
 func NewCommandExecutionContext(ctx context.Context) *CommandExecutionContext {
