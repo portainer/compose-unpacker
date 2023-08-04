@@ -20,8 +20,6 @@ import (
 )
 
 var errDeployComposeFailure = errors.New("stack deployment failure")
-var errDockerLoginFailure = errors.New("docker login failure")
-var errDockerLogoutFailure = errors.New("docker logout failure")
 
 func (cmd *DeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	log.Info().
@@ -280,7 +278,11 @@ func dockerLogin(registries []string) error {
 	for _, registry := range registries {
 		credentials := strings.Split(registry, ":")
 		if len(credentials) != 3 {
-			return errDockerLoginFailure
+			log.Warn().
+				Str("registry", registry).
+				Msg("registry is malformed. Skip login it.")
+
+			continue
 		}
 
 		args := make([]string, 0)
@@ -288,10 +290,11 @@ func dockerLogin(registries []string) error {
 
 		err := runCommandAndCaptureStdErr(command, args, nil, "")
 		if err != nil {
-			log.Error().
+			log.Warn().
 				Err(err).
-				Msg(fmt.Sprintf("Docker login %s failed", credentials[2]))
-			return errDockerLoginFailure
+				Msg(fmt.Sprintf("Docker login %s failed. Skip login it.", credentials[2]))
+
+			continue
 		}
 		log.Info().
 			Msg(fmt.Sprintf("Docker login %s successed", credentials[2]))
@@ -306,7 +309,11 @@ func dockerLogout(registries []string) error {
 	for _, registry := range registries {
 		credentials := strings.Split(registry, ":")
 		if len(credentials) != 3 {
-			return errDockerLogoutFailure
+			log.Warn().
+				Str("registry", registry).
+				Msg("registry is malformed. Skip logout it.")
+
+			continue
 		}
 
 		args := make([]string, 0)
@@ -314,10 +321,11 @@ func dockerLogout(registries []string) error {
 
 		err := runCommandAndCaptureStdErr(command, args, nil, "")
 		if err != nil {
-			log.Error().
+			log.Warn().
 				Err(err).
-				Msg(fmt.Sprintf("Docker logout %s failed", credentials[2]))
-			return errDockerLogoutFailure
+				Msg(fmt.Sprintf("Docker logout %s failed. Skip logout it.", credentials[2]))
+
+			continue
 		}
 		log.Info().
 			Msg(fmt.Sprintf("Docker logout %s successed", credentials[2]))
