@@ -272,11 +272,26 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	return nil
 }
 
+func parseRegistryString(registry string) []string {
+	parts := strings.Split(registry, ":")
+
+	if len(parts) == 3 {
+		return parts
+	}
+
+	// It's four in the following cases, or the password contains a `:` or the registry host address contains a port number
+	if len(parts) == 4 {
+		return append(make([]string, 0), parts[0], parts[1], parts[2]+":"+parts[3])
+	}
+
+	return make([]string, 0)
+}
+
 func dockerLogin(registries []string) error {
 	command := getDockerBinaryPath()
 
 	for _, registry := range registries {
-		credentials := strings.Split(registry, ":")
+		credentials := parseRegistryString(registry)
 		if len(credentials) != 3 {
 			log.Warn().
 				Str("registry", registry).
@@ -307,7 +322,7 @@ func dockerLogout(registries []string) error {
 	command := getDockerBinaryPath()
 
 	for _, registry := range registries {
-		credentials := strings.Split(registry, ":")
+		credentials := parseRegistryString(registry)
 		if len(credentials) != 3 {
 			log.Warn().
 				Str("registry", registry).
