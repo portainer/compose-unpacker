@@ -11,6 +11,7 @@ import (
 
 func main() {
 	ctx := context.Background()
+
 	cliCtx := kong.Parse(&cli,
 		kong.Name("unpacker"),
 		kong.Description("A tool to deploy Docker stacks from Git repositories."),
@@ -21,9 +22,11 @@ func main() {
 		}))
 
 	log.ConfigureLogger(cli.PrettyLog)
+
 	log.SetLoggingLevel(log.Level(cli.LogLevel))
 
 	cmdCtx := NewCommandExecutionContext(ctx)
+
 	err := cliCtx.Run(cmdCtx)
 	if err != nil {
 		fmt.Println(err)
