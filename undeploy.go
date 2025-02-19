@@ -66,7 +66,7 @@ func (cmd *SwarmUndeployCommand) Run(cmdCtx *CommandExecutionContext) error {
 	}
 
 	args := make([]string, 0)
-	args = append(args, "stack", "rm", cmd.ProjectName)
+	args = append(args, "stack", "rm", "--detach=false", cmd.ProjectName)
 	if err := runCommandAndCaptureStdErr(command, args, nil, ""); err != nil {
 		return err
 	}
