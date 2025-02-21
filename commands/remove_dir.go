@@ -1,12 +1,17 @@
-package main
+package commands
 
 import (
 	"os"
 
+	"github.com/portainer/compose-unpacker/exec"
 	"github.com/rs/zerolog/log"
 )
 
-func (cmd *RemoveDirCommand) Run(cmdCtx *CommandExecutionContext) error {
+type RemoveDirCommand struct {
+	Path string `arg:"" help:"The path be removed." name:"path"`
+}
+
+func (cmd *RemoveDirCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 	log.Info().
 		Str("path", cmd.Path).
 		Msg("Remove directory")
