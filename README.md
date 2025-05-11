@@ -2,6 +2,11 @@
 
 Build:
 
+Note that the replace directive on
+[line 5 of the go.mod file](go.mod#L5) must either
+be changed to point to a valid local copy of `github.com/portainer/portainer` or
+removed for the build to work.
+
 ```
 # To build the first argument, just our binary nothing else . Convenience for dev.
 make
