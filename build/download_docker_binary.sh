@@ -17,6 +17,8 @@ elif [[ ${ARCH} == "arm" ]]; then
     ARCH="armhf"
 elif [[ ${ARCH} == "arm64" ]]; then
     ARCH="aarch64"
+elif [[ ${ARCH} == "ppc64le" ]]; then
+    DOCKER_VERSION="18.06.3-ce"
 fi
 
 rm -rf "${DOWNLOAD_FOLDER}"
