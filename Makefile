@@ -3,6 +3,7 @@
 # Note: these can be overriden on the command line e.g. `make PLATFORM=<platform> ARCH=<arch>`
 PLATFORM=$(shell go env GOOS)
 ARCH=$(shell go env GOARCH)
+GOTESTSUM=go run gotest.tools/gotestsum@latest
 
 ifeq ("$(PLATFORM)", "windows")
 bin=compose-unpacker.exe
@@ -32,3 +33,9 @@ image: build
 clean:
 	rm -rf $(dist)
 	rm -rf .tmp
+
+lint:
+	golangci-lint run --timeout=10m -c .golangci.yaml
+
+test:
+	$(GOTESTSUM) --format pkgname-and-test-fails --format-hide-empty-pkg --hide-summary skipped -- -cover -covermode=atomic -coverprofile=coverage.out ./...
