@@ -12,6 +12,13 @@ linters:
     - perfsprint
     - staticcheck
     - unused
+    - mirror
+    - durationcheck
+    - errorlint
+    - govet
+    - unconvert
+    - usetesting
+    - zerologlint
   settings:
     depguard:
       rules:

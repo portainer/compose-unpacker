@@ -208,7 +208,7 @@ func checkRunningService(projectName string) ([]string, error) {
 		return nil, err
 	}
 
-	serviceIDs := splitLines(string(output))
+	serviceIDs := splitLines(output)
 	log.Info().
 		Strs("serviceIDs", serviceIDs).
 		Msg("Checking stack services")

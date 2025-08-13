@@ -35,7 +35,7 @@ func main() {
 		}))
 
 	log.ConfigureLogger(cli.PrettyLog)
-	log.SetLoggingLevel(log.Level(cli.LogLevel))
+	log.SetLoggingLevel(cli.LogLevel)
 
 	cmdCtx := exec.NewCommandExecutionContext(ctx)
 	if err := cliCtx.Run(cmdCtx); err != nil {
