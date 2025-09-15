@@ -7,6 +7,7 @@ import (
 
 	"github.com/portainer/compose-unpacker/auth"
 	"github.com/portainer/compose-unpacker/exec"
+	"github.com/portainer/portainer/pkg/fips"
 	"github.com/portainer/portainer/pkg/libstack"
 	"github.com/portainer/portainer/pkg/libstack/compose"
 
@@ -88,7 +89,7 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 			ReferenceName:   plumbing.ReferenceName(cmd.Reference),
 			Auth:            auth.GetAuth(cmd.User, cmd.Password),
 			Depth:           1,
-			InsecureSkipTLS: cmd.SkipTLSVerify,
+			InsecureSkipTLS: cmd.SkipTLSVerify && fips.CanTLSSkipVerify(),
 			Tags:            git.NoTags,
 		}
 
