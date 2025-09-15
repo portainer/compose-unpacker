@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/alecthomas/kong"
 	"github.com/portainer/compose-unpacker/commands"
 	"github.com/portainer/compose-unpacker/exec"
 	"github.com/portainer/compose-unpacker/log"
+	"github.com/portainer/portainer/pkg/fips"
+
+	"github.com/alecthomas/kong"
 )
 
 const UNPACKER_EXIT_ERROR = 255
@@ -21,6 +23,7 @@ var cli struct {
 	SwarmDeploy   commands.SwarmDeployCommand   `cmd:"" help:"Deploy a Swarm stack from a Git repository."`
 	SwarmUndeploy commands.SwarmUndeployCommand `cmd:"" help:"Remove a Swarm stack from a Git repository."`
 	RemoveDir     commands.RemoveDirCommand     `cmd:"" help:"Remove a directory."`
+	FipsMode      bool                          `kong:"help='Start in FIPS mode',name='fips-mode',env='FIPS_MODE',default:'false'"`
 }
 
 func main() {
@@ -33,6 +36,8 @@ func main() {
 			Compact: true,
 			Summary: true,
 		}))
+
+	fips.InitFIPS(cli.FipsMode)
 
 	log.ConfigureLogger(cli.PrettyLog)
 	log.SetLoggingLevel(cli.LogLevel)
