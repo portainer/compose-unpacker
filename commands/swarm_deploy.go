@@ -7,10 +7,12 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/go-git/go-git/v5"
-	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/portainer/compose-unpacker/auth"
 	"github.com/portainer/compose-unpacker/exec"
+	"github.com/portainer/portainer/pkg/fips"
+
+	"github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 	"github.com/rs/zerolog/log"
 )
 
@@ -112,7 +114,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 			ReferenceName:   plumbing.ReferenceName(cmd.Reference),
 			Auth:            auth.GetAuth(cmd.User, cmd.Password),
 			Depth:           1,
-			InsecureSkipTLS: cmd.SkipTLSVerify,
+			InsecureSkipTLS: cmd.SkipTLSVerify && fips.CanTLSSkipVerify(),
 			Tags:            git.NoTags,
 		}
 
