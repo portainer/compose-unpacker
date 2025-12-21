@@ -35,6 +35,7 @@ clean:
 	rm -rf .tmp
 
 lint:
+	go mod tidy
 	golangci-lint run --timeout=10m -c .golangci.yaml
 
 test:
