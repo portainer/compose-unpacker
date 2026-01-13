@@ -25,3 +25,7 @@ docker run --rm -v /tmp/unpacker:/tmp/unpacker -v /var/run/docker.sock:/var/run/
 ```
 
 **IMPORTANT NOTE**: the bind mount on the host **MUST MATCH** the bind mount inside the container for any relative asset to be loaded properly. `-v /tmp/unpacker:/tmp/unpacker` will work fine but `-v /tmp/unpacker-test:/tmp/unpacker` WILL NOT.
+
+## Security
+
+For information about reporting security vulnerabilities, please see our [Security Policy](SECURITY.md).
