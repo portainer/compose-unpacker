@@ -43,7 +43,13 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 	if err := auth.DockerLogin(cmd.Registry); err != nil {
 		return fmt.Errorf("an error occured in swarm docker login. Error: %w", err)
 	}
-	defer auth.DockerLogout(cmd.Registry)
+	defer func() {
+		if err := auth.DockerLogout(cmd.Registry); err != nil {
+			log.Warn().
+				Err(err).
+				Msg("an error occured during docker logout")
+		}
+	}()
 
 	if cmd.User != "" && cmd.Password != "" {
 		log.Info().
