@@ -125,7 +125,8 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 
 	for _, r := range cmd.Registry {
 		credentials := strings.Split(r, ":")
-		if len(credentials) != 3 {
+		partsLen := len(credentials)
+		if partsLen != 3 && partsLen != 4 {
 			log.Warn().
 				Str("registry", r).
 				Msg("Registry is malformed, skipping login")
@@ -133,10 +134,15 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 			continue
 		}
 
+		serverAddr := credentials[2]
+		if partsLen == 4 {
+			serverAddr += ":" + credentials[3]
+		}
+
 		registries = append(registries, types.AuthConfig{
 			Username:      credentials[0],
 			Password:      credentials[1],
-			ServerAddress: credentials[2],
+			ServerAddress: serverAddr,
 		})
 	}
 
