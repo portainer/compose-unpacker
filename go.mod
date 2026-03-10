@@ -9,7 +9,7 @@ require (
 	github.com/docker/cli v28.5.1+incompatible
 	github.com/go-git/go-git/v5 v5.17.0
 	github.com/portainer/portainer v0.6.1-0.20250108192604-24fdb1f60020
-	github.com/rs/zerolog v1.29.0
+	github.com/rs/zerolog v1.30.0
 )
 
 require (
