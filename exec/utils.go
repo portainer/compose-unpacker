@@ -1,19 +1,20 @@
 package exec
 
 import (
-	"path"
-	"path/filepath"
 	"runtime"
+
+	"github.com/portainer/portainer/api/filesystem"
 )
 
 func GetDockerBinaryPath() string {
-	command := path.Join(BIN_PATH, "docker")
+	command := filesystem.JoinPaths(BIN_PATH, "docker")
 	if runtime.GOOS == "windows" {
-		command = path.Join(BIN_PATH, "docker.exe")
+		command = filesystem.JoinPaths(BIN_PATH, "docker.exe")
 	}
+
 	return command
 }
 
 func MakeWorkingDir(target, stackName string) string {
-	return filepath.Join(target, "stacks", stackName)
+	return filesystem.JoinPaths(target, "stacks", stackName)
 }

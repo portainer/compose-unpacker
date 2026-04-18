@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"path"
 	"runtime"
 	"strings"
 
@@ -77,7 +76,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		Msg("Checking the file system...")
 
 	mountPath := exec.MakeWorkingDir(cmd.Destination, cmd.ProjectName)
-	clonePath := path.Join(mountPath, repositoryName)
+	clonePath := filesystem.JoinPaths(mountPath, repositoryName)
 
 	// Record running services before deployment/redeployment
 	serviceIDs, err := checkRunningService(cmd.ProjectName)
@@ -186,7 +185,7 @@ func deploySwarmStack(cmd SwarmDeployCommand, clonePath string) error {
 	}
 
 	for _, cfile := range cmd.ComposeRelativeFilePaths {
-		args = append(args, "--compose-file", path.Join(clonePath, cfile))
+		args = append(args, "--compose-file", filesystem.JoinPaths(clonePath, cfile))
 	}
 	log.Info().
 		Strs("composeFilePaths", cmd.ComposeRelativeFilePaths).

@@ -2,7 +2,6 @@ package commands
 
 import (
 	"os"
-	"path"
 	"strings"
 
 	"github.com/portainer/compose-unpacker/auth"
@@ -67,7 +66,7 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		Msg("Checking the file system...")
 
 	mountPath := exec.MakeWorkingDir(cmd.Destination, cmd.ProjectName)
-	clonePath := path.Join(mountPath, repositoryName)
+	clonePath := filesystem.JoinPaths(mountPath, repositoryName)
 	if !cmd.Keep { // Stack create request
 		if _, err := os.Stat(mountPath); err == nil {
 			if err := os.RemoveAll(mountPath); err != nil {
@@ -121,7 +120,7 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 
 	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
 	for i := range len(cmd.ComposeRelativeFilePaths) {
-		composeFilePaths[i] = path.Join(clonePath, cmd.ComposeRelativeFilePaths[i])
+		composeFilePaths[i] = filesystem.JoinPaths(clonePath, cmd.ComposeRelativeFilePaths[i])
 	}
 
 	log.Info().
