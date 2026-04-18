@@ -9,10 +9,15 @@ import (
 
 	"github.com/portainer/compose-unpacker/auth"
 	"github.com/portainer/compose-unpacker/exec"
+	"github.com/portainer/portainer/api/filesystem"
+	portainergit "github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/pkg/fips"
 
+	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
+	"github.com/go-git/go-git/v5/plumbing/cache"
+	gogitfs "github.com/go-git/go-git/v5/storage/filesystem"
 	"github.com/rs/zerolog/log"
 )
 
@@ -131,7 +136,11 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 			Int("depth", gitOptions.Depth).
 			Msg("Cloning git repository")
 
-		if _, err = git.PlainCloneContext(cmdCtx.Context, clonePath, false, &gitOptions); err != nil {
+		wt := portainergit.NewNoSymlinkFS(osfs.New(clonePath))
+		dot := osfs.New(filesystem.JoinPaths(clonePath, ".git"))
+		storer := gogitfs.NewStorage(dot, cache.NewObjectLRU(0))
+
+		if _, err = git.CloneContext(cmdCtx.Context, storer, wt, &gitOptions); err != nil {
 			log.Error().
 				Err(err).
 				Msg("Failed to clone Git repository")
