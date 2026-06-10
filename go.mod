@@ -1,6 +1,6 @@
 module github.com/portainer/compose-unpacker
 
-go 1.25.10
+go 1.25.11
 
 replace github.com/portainer/portainer => ../../../package/server-ce
 
