@@ -8,7 +8,7 @@ require (
 	github.com/alecthomas/kong v0.6.1
 	github.com/docker/cli v28.5.1+incompatible
 	github.com/go-git/go-billy/v5 v5.9.0
-	github.com/go-git/go-git/v5 v5.19.0
+	github.com/go-git/go-git/v5 v5.19.1
 	github.com/portainer/portainer v0.6.1-0.20250108192604-24fdb1f60020
 	github.com/rs/zerolog v1.34.0
 )
