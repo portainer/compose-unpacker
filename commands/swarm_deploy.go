@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"runtime"
 	"strings"
 
 	"github.com/portainer/compose-unpacker/auth"
@@ -11,6 +10,7 @@ import (
 	"github.com/portainer/portainer/api/filesystem"
 	portainergit "github.com/portainer/portainer/api/git"
 	"github.com/portainer/portainer/pkg/fips"
+	"github.com/portainer/portainer/pkg/libstack/swarm"
 
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
@@ -44,17 +44,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		Str("destination", cmd.Destination).
 		Msg("Deploying Swarm stack from a Git repository")
 
-	if err := auth.DockerLogin(cmd.Registry); err != nil {
-		return fmt.Errorf("an error occured in swarm docker login. Error: %w", err)
-	}
-	defer func() {
-		if err := auth.DockerLogout(cmd.Registry); err != nil {
-			log.Warn().
-				Err(err).
-				Msg("an error occured during docker logout")
-		}
-	}()
-
 	if cmd.User != "" && cmd.Password != "" {
 		log.Info().
 			Str("user", cmd.User).
@@ -77,26 +66,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 
 	mountPath := exec.MakeWorkingDir(cmd.Destination, cmd.ProjectName)
 	clonePath := filesystem.JoinPaths(mountPath, repositoryName)
-
-	// Record running services before deployment/redeployment
-	serviceIDs, err := checkRunningService(cmd.ProjectName)
-	if err != nil {
-		return err
-	}
-
-	runningServices := make(map[string]struct{}, 0)
-	for _, serviceID := range serviceIDs {
-		runningServices[serviceID] = struct{}{}
-	}
-
-	forceUpdate := false
-	if cmd.ForceRecreateStack && len(runningServices) > 0 {
-		// To determine whether the current service needs to force update, it
-		// is more reliable to check if there is a created service with the
-		// stack name rather than to check if there is an existing git repository.
-		forceUpdate = true
-		log.Info().Msg("Set to force update")
-	}
 
 	if !cmd.Keep { // Stack create request
 		if _, err := os.Stat(mountPath); err == nil {
@@ -139,7 +108,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		dot := osfs.New(filesystem.JoinPaths(clonePath, ".git"))
 		storer := gogitfs.NewStorage(dot, cache.NewObjectLRU(0))
 
-		if _, err = git.CloneContext(cmdCtx.Context, storer, wt, &gitOptions); err != nil {
+		if _, err := git.CloneContext(cmdCtx.Context, storer, wt, &gitOptions); err != nil {
 			log.Error().
 				Err(err).
 				Msg("Failed to clone Git repository")
@@ -148,132 +117,38 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		}
 	}
 
-	if err := deploySwarmStack(*cmd, clonePath); err != nil {
-		return err
+	deployer := swarm.NewSwarmDeployer()
+
+	composeFilePaths := make([]string, len(cmd.ComposeRelativeFilePaths))
+	for i := range len(cmd.ComposeRelativeFilePaths) {
+		composeFilePaths[i] = filesystem.JoinPaths(clonePath, cmd.ComposeRelativeFilePaths[i])
 	}
 
-	if forceUpdate {
-		// If the process executes redeployment, the running services need
-		// to be recreated forcibly
-		updatedServiceIDs, err := checkRunningService(cmd.ProjectName)
-		if err != nil {
-			return err
-		}
+	registries := exec.ParseRegistryCredentials(cmd.Registry)
 
-		for _, updatedServiceID := range updatedServiceIDs {
-			if _, ok := runningServices[updatedServiceID]; ok {
-				_ = updateService(updatedServiceID, forceUpdate)
-			}
-		}
-	}
-
-	return nil
-}
-
-func deploySwarmStack(cmd SwarmDeployCommand, clonePath string) error {
-	command := exec.GetDockerBinaryPath()
-	args := []string{"--config", exec.PORTAINER_DOCKER_CONFIG_PATH}
-
-	if cmd.Prune {
-		args = append(args, "stack", "deploy", "--prune", "--with-registry-auth")
-	} else {
-		args = append(args, "stack", "deploy", "--with-registry-auth")
-	}
-
-	if !cmd.Pull {
-		args = append(args, "--resolve-image=never")
-	}
-
-	for _, cfile := range cmd.ComposeRelativeFilePaths {
-		args = append(args, "--compose-file", filesystem.JoinPaths(clonePath, cfile))
-	}
 	log.Info().
-		Strs("composeFilePaths", cmd.ComposeRelativeFilePaths).
+		Strs("composeFilePaths", composeFilePaths).
 		Str("workingDirectory", clonePath).
 		Str("projectName", cmd.ProjectName).
 		Msg("Deploying Swarm stack")
 
-	args = append(args, cmd.ProjectName)
-
-	err := exec.RunCommandAndCaptureStdErr(command, args, cmd.Env, clonePath)
-	if err != nil {
+	if err := deployer.Deploy(cmdCtx.Context, composeFilePaths, swarm.DeployOptions{
+		Options: swarm.Options{
+			WorkingDir:  clonePath,
+			ProjectName: cmd.ProjectName,
+			Env:         cmd.Env,
+			Registries:  registries,
+		},
+		RemoveOrphans: cmd.Prune,
+		PullImage:     cmd.Pull,
+		ForceRecreate: cmd.ForceRecreateStack,
+	}); err != nil {
 		log.Error().
 			Err(err).
-			Msg("Failed to swarm deploy Git repository")
-		return exec.ErrDeployComposeFailure
-	}
-	log.Info().
-		Msg("Swarm stack deployment complete")
-
-	return err
-}
-
-func checkRunningService(projectName string) ([]string, error) {
-	command := exec.GetDockerBinaryPath()
-	args := []string{"--config", exec.PORTAINER_DOCKER_CONFIG_PATH, "stack", "services", "--format={{.ID}}", projectName}
-
-	log.Info().
-		Strs("args", args).
-		Msg("Checking Swarm stack")
-
-	output, err := exec.RunCommand(command, args)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Msg("Failed to check running swarm services")
-		return nil, err
+			Msg("Failed to deploy Swarm stack")
+		return fmt.Errorf("%w: %w", exec.ErrDeployComposeFailure, err)
 	}
 
-	serviceIDs := splitLines(output)
-	log.Info().
-		Strs("serviceIDs", serviceIDs).
-		Msg("Checking stack services")
-	return serviceIDs, nil
-}
-
-func updateService(serviceID string, forceRecreate bool) error {
-	command := exec.GetDockerBinaryPath()
-	args := []string{"--config", exec.PORTAINER_DOCKER_CONFIG_PATH, "service", "update", serviceID}
-	if forceRecreate {
-		args = append(args, "--force")
-	}
-
-	log.Info().
-		Strs("args", args).
-		Msg("Updating Swarm service")
-
-	out, err := exec.RunCommand(command, args)
-	if err != nil {
-		log.Error().
-			Err(err).
-			Str("standard_output", out).
-			Str("context", "SwarmDeployerUpdateService").
-			Msg("Failed to update swarm services")
-		return err
-	}
-
-	log.Info().
-		Str("standard_output", out).
-		Str("context", "SwarmDeployerUpdateService").
-		Msg("Update stack service completed")
+	log.Info().Msg("Swarm stack deployment complete")
 	return nil
-}
-
-func splitLines(s string) []string {
-	var separator string
-	if runtime.GOOS == "windows" {
-		separator = "\r\n"
-	} else {
-		separator = "\n"
-	}
-	parts := strings.Split(s, separator)
-
-	ret := []string{}
-	for _, part := range parts {
-		// remove empty string
-		if part != "" {
-			ret = append(ret, part)
-		}
-	}
-	return ret
 }
