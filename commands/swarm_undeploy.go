@@ -4,6 +4,7 @@ import (
 	"os"
 
 	"github.com/portainer/compose-unpacker/exec"
+	"github.com/portainer/portainer/pkg/libstack/swarm"
 	"github.com/rs/zerolog/log"
 )
 
@@ -19,11 +20,12 @@ func (cmd *SwarmUndeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error
 		Str("destination", cmd.Destination).
 		Msg("Undeploying Swarm stack from Git repository")
 
-	command := exec.GetDockerBinaryPath()
+	deployer := swarm.NewSwarmDeployer()
 
-	args := make([]string, 0)
-	args = append(args, "stack", "rm", "--detach=false", cmd.ProjectName)
-	if err := exec.RunCommandAndCaptureStdErr(command, args, nil, ""); err != nil {
+	if err := deployer.Remove(cmdCtx.Context, cmd.ProjectName, swarm.RemoveOptions{}); err != nil {
+		log.Error().
+			Err(err).
+			Msg("Failed to remove Swarm stack")
 		return err
 	}
 
