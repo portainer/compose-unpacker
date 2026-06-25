@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"strings"
@@ -13,7 +14,6 @@ import (
 	"github.com/portainer/portainer/pkg/libstack"
 	"github.com/portainer/portainer/pkg/libstack/compose"
 
-	"github.com/docker/cli/cli/config/types"
 	"github.com/go-git/go-billy/v5/osfs"
 	"github.com/go-git/go-git/v5"
 	"github.com/go-git/go-git/v5/plumbing"
@@ -130,30 +130,7 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		Str("projectName", cmd.ProjectName).
 		Msg("Deploying Compose stack")
 
-	var registries []types.AuthConfig
-
-	for _, r := range cmd.Registry {
-		credentials := strings.Split(r, ":")
-		partsLen := len(credentials)
-		if partsLen != 3 && partsLen != 4 {
-			log.Warn().
-				Str("registry", r).
-				Msg("Registry is malformed, skipping login")
-
-			continue
-		}
-
-		serverAddr := credentials[2]
-		if partsLen == 4 {
-			serverAddr += ":" + credentials[3]
-		}
-
-		registries = append(registries, types.AuthConfig{
-			Username:      credentials[0],
-			Password:      credentials[1],
-			ServerAddress: serverAddr,
-		})
-	}
+	registries := exec.ParseRegistryCredentials(cmd.Registry)
 
 	if err := deployer.Deploy(cmdCtx.Context, composeFilePaths, libstack.DeployOptions{
 		Options: libstack.Options{
@@ -168,7 +145,7 @@ func (cmd *DeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 		log.Error().
 			Err(err).
 			Msg("Failed to deploy Compose stack")
-		return exec.ErrDeployComposeFailure
+		return fmt.Errorf("%w: %w", exec.ErrDeployComposeFailure, err)
 	}
 
 	log.Info().Msg("Compose stack deployment complete")
