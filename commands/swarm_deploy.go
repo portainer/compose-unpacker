@@ -77,7 +77,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 			}
 		}
 
-		if err := os.MkdirAll(mountPath, 0755); err != nil {
+		if err := os.MkdirAll(mountPath, 0o755); err != nil {
 			log.Error().
 				Err(err).
 				Msg("Failed to create destination directory")
@@ -134,7 +134,6 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 
 	if err := deployer.Deploy(cmdCtx.Context, composeFilePaths, swarm.DeployOptions{
 		Options: swarm.Options{
-			WorkingDir:  clonePath,
 			ProjectName: cmd.ProjectName,
 			Env:         cmd.Env,
 			Registries:  registries,
