@@ -134,6 +134,7 @@ func (cmd *SwarmDeployCommand) Run(cmdCtx *exec.CommandExecutionContext) error {
 
 	if err := deployer.Deploy(cmdCtx.Context, composeFilePaths, swarm.DeployOptions{
 		Options: swarm.Options{
+			WorkingDir:  clonePath,
 			ProjectName: cmd.ProjectName,
 			Env:         cmd.Env,
 			Registries:  registries,
