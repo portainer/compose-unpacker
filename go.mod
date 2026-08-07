@@ -5,7 +5,7 @@ go 1.26.4
 replace github.com/portainer/portainer => ../../../package/server-ce
 
 require (
-	github.com/alecthomas/kong v0.6.1
+	github.com/alecthomas/kong v1.16.0
 	github.com/docker/cli v28.5.1+incompatible
 	github.com/go-git/go-billy/v5 v5.9.0
 	github.com/go-git/go-git/v5 v5.19.1
@@ -112,7 +112,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-version v1.8.0 // indirect
-	github.com/hashicorp/golang-lru v0.6.0 // indirect
+	github.com/hashicorp/golang-lru v1.0.2 // indirect
 	github.com/in-toto/attestation v1.1.2 // indirect
 	github.com/in-toto/in-toto-golang v0.11.0 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
