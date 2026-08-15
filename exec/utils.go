@@ -16,24 +16,18 @@ func MakeWorkingDir(target, stackName string) string {
 func ParseRegistryCredentials(raw []string) []types.AuthConfig {
 	var registries []types.AuthConfig
 	for _, r := range raw {
-		credentials := strings.Split(r, ":")
-		partsLen := len(credentials)
-		if partsLen != 3 && partsLen != 4 {
+		credentials := strings.SplitN(r, ":", 3)
+		if len(credentials) != 3 {
 			log.Warn().
 				Str("registry", r).
 				Msg("Registry is malformed, skipping login")
 			continue
 		}
 
-		serverAddr := credentials[2]
-		if partsLen == 4 {
-			serverAddr += ":" + credentials[3]
-		}
-
 		registries = append(registries, types.AuthConfig{
 			Username:      credentials[0],
 			Password:      credentials[1],
-			ServerAddress: serverAddr,
+			ServerAddress: credentials[2],
 		})
 	}
 	return registries
